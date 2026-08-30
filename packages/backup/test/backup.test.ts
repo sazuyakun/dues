@@ -7,19 +7,22 @@ import {
   createBackup,
   createMergePlan,
   createReplacementPlan,
+  fromBackupPayment,
   previewImport,
   serializeBackup,
+  toBackupPayment,
   validateBackup,
   validateBackupPayment,
   type BackupPayment,
 } from "../src";
+import { advanceCalendarDate, validateRecurringPayment } from "../../core/src";
 
 const payment = (overrides: Partial<BackupPayment> = {}): BackupPayment => ({
   id: "payment-1",
   name: "Video service",
   amount: 1299,
   currency: "USD",
-  recurrence: { type: "monthly" },
+  recurrence: { frequency: "monthly", anchorDay: 30 },
   nextDueDate: "2026-09-30",
   status: "active",
   ...overrides,
@@ -72,6 +75,178 @@ describe("backup export", () => {
     expect(() =>
       createBackup(payments, new Date("2026-08-30T10:00:00.000Z")),
     ).toThrow(RangeError);
+  });
+
+  it("projects storage metadata out of portable records", () => {
+    const storedPayment = {
+      ...payment(),
+      createdAt: "2026-08-30T09:00:00.000Z",
+      updatedAt: "2026-08-30T10:00:00.000Z",
+    };
+
+    const portable = toBackupPayment(storedPayment);
+    expect(portable).toEqual(payment());
+    expect(portable).not.toHaveProperty("createdAt");
+    expect(portable).not.toHaveProperty("updatedAt");
+
+    const backup = createBackup(
+      [storedPayment],
+      new Date("2026-08-30T10:00:00.000Z"),
+    );
+    expect(backup.payments).toEqual([payment()]);
+  });
+});
+
+describe("canonical payment contract", () => {
+  const contractFixtures: BackupPayment[] = [
+    payment({
+      id: "monthly-31",
+      recurrence: { frequency: "monthly", anchorDay: 31 },
+      nextDueDate: "2026-02-28",
+    }),
+    payment({
+      id: "leap-day-yearly",
+      recurrence: {
+        frequency: "yearly",
+        anchorMonth: 2,
+        anchorDay: 29,
+      },
+      nextDueDate: "2025-02-28",
+    }),
+    payment({
+      id: "custom-months",
+      recurrence: {
+        frequency: "custom",
+        interval: { count: 2, unit: "month", anchorDay: 31 },
+      },
+      nextDueDate: "2026-02-28",
+    }),
+    payment({
+      id: "all-fields",
+      currency: "INR",
+      recurrence: {
+        frequency: "custom",
+        interval: {
+          count: 2,
+          unit: "year",
+          anchorMonth: 2,
+          anchorDay: 29,
+        },
+      },
+      nextDueDate: "2028-02-29",
+      status: "paused",
+      category: "Infrastructure",
+      paymentMethodLabel: "UPI",
+      freeTrialEndDate: "2026-09-15",
+      notes: "Renew only if the project is active.",
+      providerUrl: "https://example.com/manage",
+      reminderLeadDays: 14,
+    }),
+  ];
+
+  it("round-trips canonical fixtures through every backup operation", () => {
+    const backup = createBackup(
+      contractFixtures,
+      new Date("2026-08-30T10:00:00.000Z"),
+    );
+    const serialized = serializeBackup(backup);
+    const validated = validateBackup(serialized);
+    const sortedPayments = [...backup.payments].sort((left, right) =>
+      left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
+    );
+    expect(validated).toEqual({
+      ok: true,
+      value: { ...backup, payments: sortedPayments },
+    });
+
+    const preview = previewImport(serialized, new Set(["all-fields"]));
+    expect(preview.ok).toBe(true);
+    if (!preview.ok) return;
+    expect(preview.value.validRecords).toEqual(sortedPayments);
+    expect(preview.value.newRecords.map(({ id }) => id)).toEqual([
+      "custom-months",
+      "leap-day-yearly",
+      "monthly-31",
+    ]);
+    expect(preview.value.conflicts.map(({ id }) => id)).toEqual(["all-fields"]);
+    expect(createMergePlan(preview.value)).toEqual({
+      mode: "merge",
+      ready: true,
+      inserts: sortedPayments.filter(({ id }) => id !== "all-fields"),
+      conflicts: sortedPayments.filter(({ id }) => id === "all-fields"),
+    });
+    expect(createReplacementPlan(preview.value)).toEqual({
+      mode: "replace",
+      ready: true,
+      records: sortedPayments,
+    });
+
+    for (const record of preview.value.validRecords) {
+      const canonical = validateRecurringPayment(fromBackupPayment(record));
+      expect(canonical).toEqual(record);
+      expect(toBackupPayment(canonical)).toEqual(record);
+    }
+  });
+
+  it("preserves anchored schedule behavior after a round-trip", () => {
+    const result = validateBackup(
+      serializeBackup(
+        createBackup(contractFixtures, new Date("2026-08-30T10:00:00.000Z")),
+      ),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const findPayment = (id: string): BackupPayment => {
+      const record = result.value.payments.find((payment) => payment.id === id);
+      if (record === undefined) throw new Error(`Missing fixture: ${id}`);
+      return record;
+    };
+    const monthly = findPayment("monthly-31");
+    const yearly = findPayment("leap-day-yearly");
+    const custom = findPayment("custom-months");
+
+    expect(
+      advanceCalendarDate(
+        monthly.nextDueDate,
+        fromBackupPayment(monthly).recurrence,
+      ),
+    ).toBe("2026-03-31");
+    expect(
+      advanceCalendarDate(
+        yearly.nextDueDate,
+        fromBackupPayment(yearly).recurrence,
+        3,
+      ),
+    ).toBe("2028-02-29");
+    expect(
+      advanceCalendarDate(
+        custom.nextDueDate,
+        fromBackupPayment(custom).recurrence,
+      ),
+    ).toBe("2026-04-30");
+  });
+
+  it("requires every anchor needed to preserve future schedules", () => {
+    const unsafeRecurrences = [
+      { frequency: "monthly" },
+      { frequency: "quarterly", anchorDay: 0 },
+      { frequency: "yearly", anchorDay: 29 },
+      {
+        frequency: "custom",
+        interval: { count: 1, unit: "month" },
+      },
+      {
+        frequency: "custom",
+        interval: { count: 3651, unit: "year", anchorMonth: 2, anchorDay: 29 },
+      },
+      { type: "monthly" },
+    ];
+
+    for (const recurrence of unsafeRecurrences) {
+      expect(validateBackupPayment({ ...payment(), recurrence }).ok).toBe(
+        false,
+      );
+    }
   });
 });
 
@@ -190,6 +365,19 @@ describe("strict validation", () => {
       false,
     );
   });
+
+  it.each([
+    { name: ` ${payment().name}` },
+    { category: " " },
+    { paymentMethodLabel: " card " },
+    { name: "x".repeat(201) },
+    { category: "x".repeat(101) },
+  ])(
+    "rejects text that canonical validation would transform or reject",
+    (value) => {
+      expect(validateBackupPayment(payment(value)).ok).toBe(false);
+    },
+  );
 
   it.each([
     "not a URL",

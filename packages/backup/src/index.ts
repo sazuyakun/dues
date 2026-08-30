@@ -7,6 +7,7 @@ export {
   validateBackup,
   validateBackupPayment,
 } from "./backup";
+export { fromBackupPayment, toBackupPayment } from "./adapters";
 export {
   BACKUP_FORMAT,
   CURRENT_BACKUP_VERSION,
@@ -17,6 +18,8 @@ export type {
   BackupEnvelope,
   BackupPayment,
   CalendarDate,
+  CanonicalPayment,
+  CanonicalRecurrence,
   ImportPreview,
   InvalidImportRecord,
   MergeImportPlan,

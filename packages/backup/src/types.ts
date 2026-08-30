@@ -9,14 +9,46 @@ export type MinorUnitAmount = number;
 export type PaymentStatus = "active" | "paused" | "archived";
 
 export type Recurrence =
-  | { type: "weekly" }
-  | { type: "monthly" }
-  | { type: "quarterly" }
-  | { type: "yearly" }
+  | { frequency: "weekly" }
+  | { frequency: "monthly"; anchorDay: number }
+  | { frequency: "quarterly"; anchorDay: number }
+  | { frequency: "yearly"; anchorMonth: number; anchorDay: number }
   | {
-      type: "custom";
-      interval: number;
-      unit: "days" | "weeks" | "months" | "years";
+      frequency: "custom";
+      interval:
+        | { count: number; unit: "day" }
+        | { count: number; unit: "week" }
+        | { count: number; unit: "month"; anchorDay: number }
+        | {
+            count: number;
+            unit: "year";
+            anchorMonth: number;
+            anchorDay: number;
+          };
+    };
+
+/** The structural recurrence accepted from @dues/core before wire projection. */
+export type CanonicalRecurrence =
+  | { frequency: "weekly" }
+  | { frequency: "monthly"; anchorDay?: number | undefined }
+  | { frequency: "quarterly"; anchorDay?: number | undefined }
+  | {
+      frequency: "yearly";
+      anchorMonth?: number | undefined;
+      anchorDay?: number | undefined;
+    }
+  | {
+      frequency: "custom";
+      interval:
+        | { count: number; unit: "day" }
+        | { count: number; unit: "week" }
+        | { count: number; unit: "month"; anchorDay?: number | undefined }
+        | {
+            count: number;
+            unit: "year";
+            anchorMonth?: number | undefined;
+            anchorDay?: number | undefined;
+          };
     };
 
 export interface BackupPayment {
@@ -33,6 +65,26 @@ export interface BackupPayment {
   notes?: string;
   providerUrl?: string;
   reminderLeadDays?: number;
+}
+
+/**
+ * Structural subset of the canonical core payment used at the export boundary.
+ * Storage records may carry additional metadata, which projection discards.
+ */
+export interface CanonicalPayment {
+  id: PaymentId;
+  name: string;
+  amount: MinorUnitAmount;
+  currency: string;
+  recurrence: CanonicalRecurrence;
+  nextDueDate: CalendarDate;
+  status: PaymentStatus;
+  category?: string | undefined;
+  paymentMethodLabel?: string | undefined;
+  freeTrialEndDate?: CalendarDate | undefined;
+  notes?: string | undefined;
+  providerUrl?: string | undefined;
+  reminderLeadDays?: number | undefined;
 }
 
 export interface BackupEnvelope {
