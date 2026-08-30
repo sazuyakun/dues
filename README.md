@@ -21,3 +21,5 @@ has been written yet.
 See [docs/product.md](docs/product.md), [docs/security.md](docs/security.md), and
 [docs/mvp.md](docs/mvp.md) for the initial product specification.
 
+Implementation work across the four development worktrees is coordinated in
+[docs/phase-1-parallel-plan.md](docs/phase-1-parallel-plan.md).
