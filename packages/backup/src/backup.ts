@@ -1,4 +1,5 @@
 import type { z, ZodError, ZodIssue } from "zod";
+import { toBackupPayment } from "./adapters";
 import { backupPaymentSchema, envelopeHeaderSchema } from "./schema";
 import {
   BACKUP_FORMAT,
@@ -7,6 +8,7 @@ import {
   MAX_BACKUP_RECORDS,
   type BackupEnvelope,
   type BackupPayment,
+  type CanonicalPayment,
   type ImportPreview,
   type InvalidImportRecord,
   type MergeImportPlan,
@@ -208,7 +210,7 @@ const serializeValidatedBackup = (backup: BackupEnvelope): string => {
 };
 
 export const createBackup = (
-  payments: readonly BackupPayment[],
+  payments: readonly CanonicalPayment[],
   exportedAt: Date = new Date(),
 ): BackupEnvelope => {
   if (payments.length > MAX_BACKUP_RECORDS) {
@@ -220,7 +222,7 @@ export const createBackup = (
     format: BACKUP_FORMAT,
     version: CURRENT_BACKUP_VERSION,
     exportedAt: exportedAt.toISOString(),
-    payments: [...payments],
+    payments: payments.map(toBackupPayment),
   };
   const result = validateBackup(JSON.stringify(candidate));
   if (!result.ok) {

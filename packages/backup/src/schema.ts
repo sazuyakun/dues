@@ -56,19 +56,58 @@ const providerUrl = z
     "Must be an HTTPS URL without embedded credentials (HTTP is allowed only for localhost development)",
   );
 
-const recurrenceSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("weekly") }).strict(),
-  z.object({ type: z.literal("monthly") }).strict(),
-  z.object({ type: z.literal("quarterly") }).strict(),
-  z.object({ type: z.literal("yearly") }).strict(),
+const anchorDay = z.number().int().min(1).max(31);
+const anchorMonth = z.number().int().min(1).max(12);
+const intervalCount = z.number().int().safe().min(1).max(3650);
+
+const customIntervalSchema = z.discriminatedUnion("unit", [
+  z.object({ count: intervalCount, unit: z.literal("day") }).strict(),
+  z.object({ count: intervalCount, unit: z.literal("week") }).strict(),
   z
     .object({
-      type: z.literal("custom"),
-      interval: z.number().int().safe().positive(),
-      unit: z.enum(["days", "weeks", "months", "years"]),
+      count: intervalCount,
+      unit: z.literal("month"),
+      anchorDay,
+    })
+    .strict(),
+  z
+    .object({
+      count: intervalCount,
+      unit: z.literal("year"),
+      anchorMonth,
+      anchorDay,
     })
     .strict(),
 ]);
+
+const recurrenceSchema = z.discriminatedUnion("frequency", [
+  z.object({ frequency: z.literal("weekly") }).strict(),
+  z.object({ frequency: z.literal("monthly"), anchorDay }).strict(),
+  z.object({ frequency: z.literal("quarterly"), anchorDay }).strict(),
+  z
+    .object({
+      frequency: z.literal("yearly"),
+      anchorMonth,
+      anchorDay,
+    })
+    .strict(),
+  z
+    .object({
+      frequency: z.literal("custom"),
+      interval: customIntervalSchema,
+    })
+    .strict(),
+]);
+
+const requiredTrimmedText = (maximumLength: number) =>
+  z
+    .string()
+    .min(1)
+    .max(maximumLength)
+    .refine(
+      (value) => value.trim() === value && value.length > 0,
+      "Must not start or end with whitespace",
+    );
 
 export const backupPaymentSchema = z
   .object({
@@ -80,11 +119,7 @@ export const backupPaymentSchema = z
         (value) => value.trim() === value,
         "Must not start or end with whitespace",
       ),
-    name: z
-      .string()
-      .min(1)
-      .max(500)
-      .refine((value) => value.trim().length > 0, "Must contain visible text"),
+    name: requiredTrimmedText(200),
     amount: z.number().int().safe().nonnegative(),
     currency: z
       .string()
@@ -92,8 +127,8 @@ export const backupPaymentSchema = z
     recurrence: recurrenceSchema,
     nextDueDate: calendarDate,
     status: z.enum(["active", "paused", "archived"]),
-    category: z.string().max(200).optional(),
-    paymentMethodLabel: z.string().max(200).optional(),
+    category: requiredTrimmedText(100).optional(),
+    paymentMethodLabel: requiredTrimmedText(100).optional(),
     freeTrialEndDate: calendarDate.optional(),
     notes: z.string().max(10_000).optional(),
     providerUrl: providerUrl.optional(),
