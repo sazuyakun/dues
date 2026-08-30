@@ -5,14 +5,22 @@ export type PaymentStatus = "active" | "paused" | "archived";
 export type ThemeSetting = "light" | "dark" | "system";
 
 export type Recurrence =
-  | { readonly kind: "weekly" }
-  | { readonly kind: "monthly" }
-  | { readonly kind: "quarterly" }
-  | { readonly kind: "yearly" }
+  | { readonly frequency: "weekly" }
+  | { readonly frequency: "monthly"; readonly anchorDay?: number }
+  | { readonly frequency: "quarterly"; readonly anchorDay?: number }
   | {
-      readonly kind: "custom";
-      readonly interval: number;
-      readonly unit: "days" | "weeks" | "months" | "years";
+      readonly frequency: "yearly";
+      readonly anchorDay?: number;
+      readonly anchorMonth?: number;
+    }
+  | {
+      readonly frequency: "custom";
+      readonly interval: {
+        readonly count: number;
+        readonly unit: "day" | "week" | "month" | "year";
+        readonly anchorDay?: number;
+        readonly anchorMonth?: number;
+      };
     };
 
 export interface PaymentInput {
@@ -85,5 +93,4 @@ export interface StorageRepositories {
   readonly payments: PaymentRepository;
   readonly settings: SettingsRepository;
   close(): void;
-  deleteDatabase(): Promise<void>;
 }

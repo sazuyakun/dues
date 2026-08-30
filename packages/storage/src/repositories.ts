@@ -210,9 +210,5 @@ export async function createStorage(options: StorageOptions = {}): Promise<Stora
     payments: new DexiePaymentRepository(database, options.now ?? (() => new Date())),
     settings: new DexieSettingsRepository(database),
     close: () => database.close(),
-    deleteDatabase: async () => {
-      database.close();
-      await database.delete();
-    },
   };
 }

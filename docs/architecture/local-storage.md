@@ -32,6 +32,11 @@ Payment amounts are non-negative safe integers in minor currency units. Billing
 and trial dates are calendar-date strings. `createdAt` and `updatedAt` are ISO
 timestamps because they are change metadata, not billing dates.
 
+The stored payment shape follows `@dues/core`: recurrence uses a `frequency`
+discriminator, and monthly/yearly intervals retain their calendar anchor fields.
+Storage intentionally does not transform recurrence rules because doing so could
+change the next-date semantics chosen by the domain package.
+
 Normal `create` assigns both timestamps. Normal `update`, archive, and restore
 preserve `createdAt` and advance `updatedAt`. Import-oriented bulk writes accept
 complete records and preserve their supplied metadata. Consumers should pass an

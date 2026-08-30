@@ -12,7 +12,7 @@ const DISPLAY_MESSAGES: Record<StorageErrorCode, string> = {
   unavailable: "Local storage is unavailable in this browser.",
   initialization: "Local storage could not be opened.",
   quota: "This device does not have enough storage space.",
-  transaction: "The local data change could not be completed.",
+  transaction: "The local data operation could not be completed.",
   duplicate: "A payment with this ID already exists.",
   conflict: "This payment changed since it was last loaded.",
   "not-found": "The requested payment was not found.",

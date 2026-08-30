@@ -10,7 +10,7 @@ import {
   type StorageRepositories,
 } from "../src/index.js";
 
-const databases: StorageRepositories[] = [];
+const databases: Array<{ readonly name: string; readonly storage: StorageRepositories }> = [];
 let sequence = 0;
 
 function payment(id: string, overrides: Partial<PaymentInput> = {}): PaymentInput {
@@ -19,7 +19,7 @@ function payment(id: string, overrides: Partial<PaymentInput> = {}): PaymentInpu
     name: `Payment ${id}`,
     amount: 1299,
     currency: "USD",
-    recurrence: { kind: "monthly" },
+    recurrence: { frequency: "monthly", anchorDay: 15 },
     nextDueDate: "2026-09-15",
     status: "active",
     ...overrides,
@@ -27,13 +27,23 @@ function payment(id: string, overrides: Partial<PaymentInput> = {}): PaymentInpu
 }
 
 async function storage(now = () => new Date("2026-08-30T10:00:00.000Z")) {
-  const instance = await createStorage({ databaseName: `dues-test-${sequence++}`, now });
-  databases.push(instance);
+  const name = `dues-test-${sequence++}`;
+  const instance = await createStorage({ databaseName: name, now });
+  databases.push({ name, storage: instance });
   return instance;
 }
 
 afterEach(async () => {
-  await Promise.all(databases.splice(0).map((database) => database.deleteDatabase()));
+  await Promise.all(
+    databases.splice(0).map(async ({ name, storage: instance }) => {
+      instance.close();
+      await new Promise<void>((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(name);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    }),
+  );
 });
 
 describe("payment repository", () => {
@@ -81,12 +91,18 @@ describe("payment repository", () => {
   it("preserves data after close and reopen", async () => {
     const name = `dues-reopen-${sequence++}`;
     const first = await createStorage({ databaseName: name });
+    databases.push({ name, storage: first });
     await first.payments.create(payment("persisted"));
+    await first.settings.update({ onboardingComplete: true, defaultCurrency: "INR" });
     first.close();
 
     const reopened = await createStorage({ databaseName: name });
-    databases.push(reopened);
+    databases[databases.length - 1] = { name, storage: reopened };
     expect((await reopened.payments.get("persisted"))?.name).toBe("Payment persisted");
+    expect(await reopened.settings.get()).toMatchObject({
+      onboardingComplete: true,
+      defaultCurrency: "INR",
+    });
   });
 
   it("applies an approved bulk plan atomically", async () => {
@@ -107,7 +123,7 @@ describe("payment repository", () => {
     expect(await repositories.payments.get("old")).toEqual(changed);
   });
 
-  it("rolls back every bulk mutation when validation fails", async () => {
+  it("does not write any part of a bulk plan when validation fails", async () => {
     const repositories = await storage();
     const old = await repositories.payments.create(payment("old"));
     const imported: PaymentRecord = {
@@ -124,6 +140,31 @@ describe("payment repository", () => {
     ).rejects.toMatchObject({ code: "not-found" });
     expect(await repositories.payments.get("new")).toBeUndefined();
     expect(await repositories.payments.get("old")).toEqual(old);
+  });
+
+  it("rolls back earlier writes when IndexedDB rejects a later bulk mutation", async () => {
+    const repositories = await storage();
+    const valid: PaymentRecord = {
+      ...payment("valid"),
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const uncloneable: PaymentRecord = {
+      ...payment("uncloneable"),
+      // Simulate a low-level IndexedDB write failure after preflight validation.
+      notes: (() => undefined) as unknown as string,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+
+    await expect(
+      repositories.payments.applyBulk([
+        { type: "create", payment: valid },
+        { type: "create", payment: uncloneable },
+      ]),
+    ).rejects.toMatchObject({ code: "transaction" });
+    expect(await repositories.payments.get("valid")).toBeUndefined();
+    expect(await repositories.payments.get("uncloneable")).toBeUndefined();
   });
 
   it("rejects duplicate IDs inside one bulk plan", async () => {
@@ -157,5 +198,25 @@ describe("settings repository", () => {
         theme: "dark",
       }),
     ).toEqual({ onboardingComplete: true, defaultCurrency: "INR", theme: "dark" });
+  });
+});
+
+describe("initialization", () => {
+  it("returns a display-safe error when IndexedDB is unavailable", async () => {
+    const availableIndexedDb = globalThis.indexedDB;
+    Object.defineProperty(globalThis, "indexedDB", { configurable: true, value: undefined });
+    try {
+      await expect(createStorage()).rejects.toEqual(
+        expect.objectContaining({
+          code: "unavailable",
+          message: "Local storage is unavailable in this browser.",
+        }),
+      );
+    } finally {
+      Object.defineProperty(globalThis, "indexedDB", {
+        configurable: true,
+        value: availableIndexedDb,
+      });
+    }
   });
 });
