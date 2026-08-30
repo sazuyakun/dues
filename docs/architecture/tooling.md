@@ -38,6 +38,42 @@ temporarily stored directly in local storage; the integration phase will move
 it behind the storage package's settings interface. The `system` choice reacts
 to operating-system color-scheme changes.
 
+## Application boundary
+
+`apps/web` declares `@dues/core`, `@dues/storage`, and `@dues/backup` as
+workspace dependencies. Feature code consumes those packages through the
+application contracts exported by `apps/web/src/app/index.ts`; React features
+must not open Dexie, parse backup JSON, or reproduce schedule calculations.
+
+The boundary exposes `PaymentService`, `SettingsService`, and `BackupService`.
+Payment records use the canonical core payment value plus storage-owned
+`createdAt` and `updatedAt` metadata. Every mutation of an existing payment
+requires the `updatedAt` value from the record the user acted on. A stale token
+is reported as a conflict so the feature can reload instead of overwriting a
+newer local change.
+
+`ApplicationProvider` accepts an asynchronous initializer and exposes three
+startup states: initializing, ready, and display-safe failure. The provider
+closes initialized resources on unmount and offers retry after recoverable
+startup failures. Production repository and service construction is supplied
+by the storage-integration work; the web package includes deterministic
+in-memory service doubles for component tests.
+
+Current date, clock, and ID generation are available through an injected
+`ApplicationEnvironment`. Production uses browser-provided time and a
+cryptographically strong UUID source; tests use fixed dates, instants, and IDs.
+Feature components must not call `Date.now()`, construct billing dates from
+timestamps, or generate IDs directly.
+
+Route-level features export named components from a public `index.ts` within
+their feature directory. `AppRoutes` composes only those public exports. Until
+Gate 2 features are integrated, Phase 1 pages are isolated behind temporary
+route-level fallback exports in `app/featureFallbacks.ts`.
+
+Shared UI components are intentionally small: page headings, labelled fields,
+status and loading messages, empty states, and confirmation dialogs. Feature
+specific layout and behavior remain inside each feature directory.
+
 ## PWA and offline behavior
 
 `vite-plugin-pwa` generates the web app manifest and a Workbox service worker.

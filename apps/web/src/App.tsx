@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { AppShell } from "./components/AppShell";
-import { BackupPage } from "./pages/BackupPage";
-import { PaymentFormPage } from "./pages/PaymentFormPage";
-import { PaymentsPage } from "./pages/PaymentsPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { UpcomingPage } from "./pages/UpcomingPage";
+import { AppRoutes } from "./app/AppRoutes";
+import { AppShell } from "./components";
 import {
   applyTheme,
   loadTheme,
@@ -34,19 +29,7 @@ export function App() {
 
   return (
     <AppShell>
-      <Routes>
-        <Route path="/" element={<Navigate to="/upcoming" replace />} />
-        <Route path="/upcoming" element={<UpcomingPage />} />
-        <Route path="/payments" element={<PaymentsPage />} />
-        <Route path="/add" element={<PaymentFormPage />} />
-        <Route path="/payments/:paymentId/edit" element={<PaymentFormPage />} />
-        <Route path="/backup" element={<BackupPage />} />
-        <Route
-          path="/settings"
-          element={<SettingsPage theme={theme} onThemeChange={updateTheme} />}
-        />
-        <Route path="*" element={<Navigate to="/upcoming" replace />} />
-      </Routes>
+      <AppRoutes theme={theme} onThemeChange={updateTheme} />
     </AppShell>
   );
 }

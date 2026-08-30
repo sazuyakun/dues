@@ -641,6 +641,153 @@ select:disabled {
   opacity: 0.72;
 }
 
+.form-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.form-field > label,
+.field-hint,
+.field-error {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+}
+
+.form-field > label {
+  color: var(--field-muted);
+  text-transform: uppercase;
+}
+
+.field-hint,
+.field-error {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.field-hint {
+  color: var(--field-subtle);
+}
+
+.field-error,
+.status-message[data-tone="error"] {
+  color: #ff7d77;
+}
+
+.status-message,
+.loading-state,
+.empty-state {
+  width: min(100%, 44rem);
+  margin: clamp(2rem, 7vw, 6rem) auto;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--field-rule);
+  background: var(--field-surface-soft);
+}
+
+.status-message {
+  border-left: 0.35rem solid var(--field-accent);
+}
+
+.status-message[data-tone="error"] {
+  border-left-color: currentColor;
+}
+
+.status-message h2,
+.loading-state h2,
+.empty-state h2,
+.confirm-dialog h2 {
+  margin: 0;
+  color: var(--field-text);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  letter-spacing: -0.045em;
+}
+
+.loading-state h2,
+.empty-state h2,
+.confirm-dialog h2 {
+  margin-top: 0.9rem;
+}
+
+.status-message p,
+.loading-state > p:not(.eyebrow),
+.empty-state > p:not(.eyebrow),
+.confirm-dialog > div:not(.dialog-actions) {
+  color: var(--field-muted);
+  line-height: 1.65;
+}
+
+.status-message button,
+.empty-state-action {
+  margin-top: 1rem;
+}
+
+.loading-track {
+  display: block;
+  height: 0.45rem;
+  margin-top: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--field-rule);
+}
+
+.loading-track > span {
+  display: block;
+  width: 36%;
+  height: 100%;
+  background: var(--field-accent);
+  animation: loading-fill 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes loading-fill {
+  to {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-track > span {
+    width: 68%;
+    animation: none;
+  }
+}
+
+.dialog-backdrop {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--field-canvas) 86%, transparent);
+}
+
+.confirm-dialog {
+  width: min(100%, 36rem);
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--field-accent);
+  background: var(--field-surface);
+  box-shadow: 0 1.5rem 5rem color-mix(in srgb, #000 54%, transparent);
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.dialog-actions button:first-child {
+  color: var(--field-text);
+  border-color: var(--field-rule);
+  background: var(--field-bg);
+}
+
+.dialog-actions .destructive-action {
+  color: var(--field-bg);
+  border-color: #ff554f;
+  background: #ff554f;
+}
+
 .register-heading {
   display: grid;
   grid-template-columns: 4.5rem minmax(0, 1fr) auto;
