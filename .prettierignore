@@ -1,0 +1,9 @@
+dist
+coverage
+playwright-report
+test-results
+pnpm-lock.yaml
+docs/mvp.md
+docs/phase-1-parallel-plan.md
+docs/product.md
+docs/security.md
