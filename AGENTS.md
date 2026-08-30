@@ -1,7 +1,7 @@
 # Worktrees
 
 - Use only the assigned persistent worktree and its current branch: `codex/worktree-1`, `codex/worktree-2`, `codex/worktree-3`, or `codex/worktree-4`.
-- Never switch branches or work directly on `main`.
+- Never switch branches or work directly on `main`, unless the user explicitly requests integration from the main worktree.
 - Before starting, inspect `git status` and preserve existing user or agent changes.
 
 # Changes
@@ -16,4 +16,4 @@
 # Handoff
 
 - Report the commit hash, tests run and their results, and any remaining concerns.
-- Treat the main worktree as the integration workspace. The user will rebase completed branches onto `main`, fast-forward merge them one at a time, and push only `main`.
+- Treat the main worktree as the integration workspace. When explicitly requested, rebase completed branches onto `main`, fast-forward merge them one at a time, and push only `main`.
