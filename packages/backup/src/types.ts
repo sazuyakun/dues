@@ -52,7 +52,6 @@ export interface ValidationError {
   message: string;
   path?: string;
   recordIndex?: number;
-  recordId?: string;
 }
 
 export type ValidationResult<T> =
@@ -61,7 +60,6 @@ export type ValidationResult<T> =
 
 export interface InvalidImportRecord {
   index: number;
-  id?: string;
   errors: ValidationError[];
 }
 
@@ -73,15 +71,10 @@ export interface ImportPreview {
   conflicts: BackupPayment[];
 }
 
-export interface MergeImportPlan {
-  mode: "merge";
-  inserts: BackupPayment[];
-  conflicts: BackupPayment[];
-  invalidRecords: InvalidImportRecord[];
-}
+export type MergeImportPlan =
+  | { mode: "merge"; ready: false; invalidRecords: InvalidImportRecord[] }
+  | { mode: "merge"; ready: true; inserts: BackupPayment[]; conflicts: BackupPayment[] };
 
-export interface ReplacementImportPlan {
-  mode: "replace";
-  records: BackupPayment[];
-  invalidRecords: InvalidImportRecord[];
-}
+export type ReplacementImportPlan =
+  | { mode: "replace"; ready: false; invalidRecords: InvalidImportRecord[] }
+  | { mode: "replace"; ready: true; records: BackupPayment[] };

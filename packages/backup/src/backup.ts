@@ -1,4 +1,4 @@
-import { ZodError } from "zod";
+import type { z, ZodError, ZodIssue } from "zod";
 import { backupPaymentSchema, envelopeHeaderSchema } from "./schema";
 import {
   BACKUP_FORMAT,
@@ -15,132 +15,212 @@ import {
   type ValidationResult,
 } from "./types";
 
+type EnvelopeHeader = z.infer<typeof envelopeHeaderSchema>;
+type IndexedPayment = { index: number; value: BackupPayment };
+
 const byteLength = (text: string): number => new TextEncoder().encode(text).byteLength;
 
-const safeId = (value: unknown): string | undefined => {
-  if (typeof value !== "object" || value === null || !("id" in value)) return undefined;
-  return typeof value.id === "string" ? value.id.slice(0, 200) : undefined;
+const safeIssueMessage = (issue: ZodIssue): string => {
+  switch (issue.code) {
+    case "custom":
+      return issue.message;
+    case "invalid_type":
+      return issue.received === "undefined" ? "Required field is missing" : "Value has an invalid type";
+    case "invalid_enum_value":
+    case "invalid_literal":
+    case "invalid_union":
+    case "invalid_union_discriminator":
+      return "Value is not supported";
+    case "invalid_string":
+      return "String has an invalid format";
+    case "too_small":
+      return "Value is below the allowed minimum";
+    case "too_big":
+      return "Value exceeds the allowed maximum";
+    case "unrecognized_keys":
+      return "Object contains unexpected properties";
+    default:
+      return "Value is invalid";
+  }
 };
 
-const zodErrors = (error: ZodError, base: Omit<ValidationError, "message" | "path">): ValidationError[] =>
+const zodErrors = (error: ZodError, code: "invalid_envelope" | "invalid_record"): ValidationError[] =>
   error.issues.map((issue) => ({
-    ...base,
-    message: issue.message,
+    code,
+    message: safeIssueMessage(issue),
     ...(issue.path.length > 0 ? { path: issue.path.join(".") } : {}),
   }));
 
-export const validateBackupPayment = (value: unknown): ValidationResult<BackupPayment> => {
-  const result = backupPaymentSchema.safeParse(value);
-  return result.success
-    ? { ok: true, value: result.data as BackupPayment }
-    : { ok: false, errors: zodErrors(result.error, { code: "invalid_record" }) };
-};
-
-export const validateBackup = (text: string): ValidationResult<BackupEnvelope> => {
+const parseEnvelope = (text: string): ValidationResult<EnvelopeHeader> => {
   if (byteLength(text) > MAX_BACKUP_BYTES) {
     return { ok: false, errors: [{ code: "file_too_large", message: `Backup exceeds the ${MAX_BACKUP_BYTES}-byte limit` }] };
   }
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
     return { ok: false, errors: [{ code: "malformed_json", message: "Backup is not valid JSON" }] };
   }
-  if (typeof parsed === "object" && parsed !== null && "version" in parsed && parsed.version !== CURRENT_BACKUP_VERSION) {
+
+  if (
+    typeof parsed === "object"
+    && parsed !== null
+    && "format" in parsed
+    && parsed.format === BACKUP_FORMAT
+    && "version" in parsed
+    && parsed.version !== CURRENT_BACKUP_VERSION
+  ) {
     return { ok: false, errors: [{ code: "unsupported_version", message: "Backup format version is not supported", path: "version" }] };
   }
-  const header = envelopeHeaderSchema.safeParse(parsed);
-  if (!header.success) {
-    return { ok: false, errors: zodErrors(header.error, { code: "invalid_envelope" }) };
+
+  const result = envelopeHeaderSchema.safeParse(parsed);
+  if (!result.success) {
+    return { ok: false, errors: zodErrors(result.error, "invalid_envelope") };
   }
-  if (header.data.payments.length > MAX_BACKUP_RECORDS) {
+  if (result.data.payments.length > MAX_BACKUP_RECORDS) {
     return { ok: false, errors: [{ code: "too_many_records", message: `Backup exceeds the ${MAX_BACKUP_RECORDS}-record limit`, path: "payments" }] };
   }
-  const payments: BackupPayment[] = [];
-  const errors: ValidationError[] = [];
-  const seen = new Set<string>();
-  header.data.payments.forEach((record, index) => {
+  return { ok: true, value: result.data };
+};
+
+const validateRecords = (records: readonly unknown[]): { valid: IndexedPayment[]; invalid: InvalidImportRecord[] } => {
+  const parsed: IndexedPayment[] = [];
+  const invalid: InvalidImportRecord[] = [];
+
+  records.forEach((record, index) => {
     const result = validateBackupPayment(record);
-    const id = safeId(record);
-    if (!result.ok) {
-      errors.push(...result.errors.map((error) => ({ ...error, recordIndex: index, ...(id === undefined ? {} : { recordId: id }) })));
+    if (result.ok) {
+      parsed.push({ index, value: result.value });
       return;
     }
-    if (seen.has(result.value.id)) {
-      errors.push({ code: "duplicate_id", message: "Payment ID appears more than once in the backup", path: "id", recordIndex: index, recordId: result.value.id });
-      return;
-    }
-    seen.add(result.value.id);
-    payments.push(result.value);
+    invalid.push({
+      index,
+      errors: result.errors.map((error) => ({ ...error, recordIndex: index })),
+    });
   });
-  if (errors.length > 0) return { ok: false, errors };
-  return { ok: true, value: { ...header.data, payments } as BackupEnvelope };
+
+  const idCounts = new Map<string, number>();
+  parsed.forEach(({ value }) => idCounts.set(value.id, (idCounts.get(value.id) ?? 0) + 1));
+
+  const valid: IndexedPayment[] = [];
+  parsed.forEach((record) => {
+    if (idCounts.get(record.value.id) === 1) {
+      valid.push(record);
+      return;
+    }
+    invalid.push({
+      index: record.index,
+      errors: [{
+        code: "duplicate_id",
+        message: "Payment ID appears more than once in the backup",
+        path: "id",
+        recordIndex: record.index,
+      }],
+    });
+  });
+
+  invalid.sort((left, right) => left.index - right.index);
+  return { valid, invalid };
+};
+
+export const validateBackupPayment = (value: unknown): ValidationResult<BackupPayment> => {
+  const result = backupPaymentSchema.safeParse(value);
+  return result.success
+    ? { ok: true, value: result.data as BackupPayment }
+    : { ok: false, errors: zodErrors(result.error, "invalid_record") };
+};
+
+export const validateBackup = (text: string): ValidationResult<BackupEnvelope> => {
+  const envelope = parseEnvelope(text);
+  if (!envelope.ok) return envelope;
+
+  const records = validateRecords(envelope.value.payments);
+  if (records.invalid.length > 0) {
+    return { ok: false, errors: records.invalid.flatMap(({ errors }) => errors) };
+  }
+  return {
+    ok: true,
+    value: {
+      format: envelope.value.format,
+      version: envelope.value.version,
+      exportedAt: envelope.value.exportedAt,
+      payments: records.valid.map(({ value }) => value),
+    },
+  };
+};
+
+const serializeValidatedBackup = (backup: BackupEnvelope): string => {
+  const payments = [...backup.payments].sort((left, right) => {
+    if (left.id < right.id) return -1;
+    if (left.id > right.id) return 1;
+    return 0;
+  });
+  return `${JSON.stringify({ ...backup, payments }, null, 2)}\n`;
 };
 
 export const createBackup = (payments: readonly BackupPayment[], exportedAt: Date = new Date()): BackupEnvelope => {
-  const validated = payments.map((payment) => {
-    const result = validateBackupPayment(payment);
-    if (!result.ok) throw new TypeError(`Cannot export invalid payment: ${result.errors[0]?.message ?? "validation failed"}`);
-    return result.value;
-  });
-  if (validated.length > MAX_BACKUP_RECORDS) throw new RangeError(`Cannot export more than ${MAX_BACKUP_RECORDS} payments`);
-  return { format: BACKUP_FORMAT, version: CURRENT_BACKUP_VERSION, exportedAt: exportedAt.toISOString(), payments: validated };
+  if (payments.length > MAX_BACKUP_RECORDS) {
+    throw new RangeError(`Cannot export more than ${MAX_BACKUP_RECORDS} payments`);
+  }
+  const candidate: BackupEnvelope = {
+    format: BACKUP_FORMAT,
+    version: CURRENT_BACKUP_VERSION,
+    exportedAt: exportedAt.toISOString(),
+    payments: [...payments],
+  };
+  const result = validateBackup(JSON.stringify(candidate));
+  if (!result.ok) {
+    const message = result.errors[0]?.message ?? "validation failed";
+    if (result.errors[0]?.code === "file_too_large") throw new RangeError(`Cannot export backup: ${message}`);
+    throw new TypeError(`Cannot export invalid backup: ${message}`);
+  }
+  if (byteLength(serializeValidatedBackup(result.value)) > MAX_BACKUP_BYTES) {
+    throw new RangeError(`Cannot export backup: serialized output exceeds the ${MAX_BACKUP_BYTES}-byte limit`);
+  }
+  return result.value;
 };
 
 export const serializeBackup = (backup: BackupEnvelope): string => {
   const validated = validateBackup(JSON.stringify(backup));
-  if (!validated.ok) throw new TypeError(`Cannot serialize invalid backup: ${validated.errors[0]?.message ?? "validation failed"}`);
-  const sorted = [...validated.value.payments].sort((left, right) => left.id.localeCompare(right.id));
-  return `${JSON.stringify({ ...validated.value, payments: sorted }, null, 2)}\n`;
+  if (!validated.ok) {
+    throw new TypeError(`Cannot serialize invalid backup: ${validated.errors[0]?.message ?? "validation failed"}`);
+  }
+  const serialized = serializeValidatedBackup(validated.value);
+  if (byteLength(serialized) > MAX_BACKUP_BYTES) {
+    throw new RangeError(`Serialized backup exceeds the ${MAX_BACKUP_BYTES}-byte limit`);
+  }
+  return serialized;
 };
 
 export const previewImport = (text: string, existingIds: ReadonlySet<string>): ValidationResult<ImportPreview> => {
-  if (byteLength(text) > MAX_BACKUP_BYTES) return { ok: false, errors: [{ code: "file_too_large", message: `Backup exceeds the ${MAX_BACKUP_BYTES}-byte limit` }] };
-  let parsed: unknown;
-  try { parsed = JSON.parse(text); } catch { return { ok: false, errors: [{ code: "malformed_json", message: "Backup is not valid JSON" }] }; }
-  if (typeof parsed === "object" && parsed !== null && "version" in parsed && parsed.version !== CURRENT_BACKUP_VERSION) {
-    return { ok: false, errors: [{ code: "unsupported_version", message: "Backup format version is not supported", path: "version" }] };
-  }
-  const header = envelopeHeaderSchema.safeParse(parsed);
-  if (!header.success) return { ok: false, errors: zodErrors(header.error, { code: "invalid_envelope" }) };
-  if (header.data.payments.length > MAX_BACKUP_RECORDS) return { ok: false, errors: [{ code: "too_many_records", message: `Backup exceeds the ${MAX_BACKUP_RECORDS}-record limit`, path: "payments" }] };
+  const envelope = parseEnvelope(text);
+  if (!envelope.ok) return envelope;
 
-  const validRecords: BackupPayment[] = [];
-  const invalidRecords: InvalidImportRecord[] = [];
-  const seen = new Set<string>();
-  header.data.payments.forEach((record, index) => {
-    const result = validateBackupPayment(record);
-    const id = safeId(record);
-    if (!result.ok) {
-      invalidRecords.push({ index, ...(id === undefined ? {} : { id }), errors: result.errors.map((error) => ({ ...error, recordIndex: index, ...(id === undefined ? {} : { recordId: id }) })) });
-    } else if (seen.has(result.value.id)) {
-      invalidRecords.push({ index, id: result.value.id, errors: [{ code: "duplicate_id", message: "Payment ID appears more than once in the backup", path: "id", recordIndex: index, recordId: result.value.id }] });
-    } else {
-      seen.add(result.value.id);
-      validRecords.push(result.value);
-    }
-  });
+  const records = validateRecords(envelope.value.payments);
+  const validRecords = records.valid.map(({ value }) => value);
   return {
     ok: true,
     value: {
-      envelope: { format: header.data.format, version: header.data.version, exportedAt: header.data.exportedAt },
+      envelope: {
+        format: envelope.value.format,
+        version: envelope.value.version,
+        exportedAt: envelope.value.exportedAt,
+      },
       validRecords,
-      invalidRecords,
+      invalidRecords: records.invalid,
       newRecords: validRecords.filter((record) => !existingIds.has(record.id)),
       conflicts: validRecords.filter((record) => existingIds.has(record.id)),
     },
   };
 };
 
-export const createMergePlan = (preview: ImportPreview): MergeImportPlan => ({
-  mode: "merge",
-  inserts: [...preview.newRecords],
-  conflicts: [...preview.conflicts],
-  invalidRecords: [...preview.invalidRecords],
-});
+export const createMergePlan = (preview: ImportPreview): MergeImportPlan =>
+  preview.invalidRecords.length > 0
+    ? { mode: "merge", ready: false, invalidRecords: [...preview.invalidRecords] }
+    : { mode: "merge", ready: true, inserts: [...preview.newRecords], conflicts: [...preview.conflicts] };
 
-export const createReplacementPlan = (preview: ImportPreview): ReplacementImportPlan => ({
-  mode: "replace",
-  records: [...preview.validRecords],
-  invalidRecords: [...preview.invalidRecords],
-});
+export const createReplacementPlan = (preview: ImportPreview): ReplacementImportPlan =>
+  preview.invalidRecords.length > 0
+    ? { mode: "replace", ready: false, invalidRecords: [...preview.invalidRecords] }
+    : { mode: "replace", ready: true, records: [...preview.validRecords] };

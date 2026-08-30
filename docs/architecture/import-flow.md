@@ -30,18 +30,20 @@ record index. They never echo arbitrary imported values.
 
 Once the envelope is trusted, records are handled independently. The preview
 lists schema-valid records and invalid records; valid records are further split
-into new IDs and conflicts against the caller-supplied existing-ID set. The
-first occurrence of an ID is considered and every later occurrence in the same
-backup is invalid. Script-like strings are accepted as inert text, while unsafe
-provider URL schemes are rejected.
+into new IDs and conflicts against the caller-supplied existing-ID set. Every
+occurrence of an ID that is duplicated among schema-valid records is invalid,
+so file ordering cannot decide which value wins. Script-like strings are
+accepted as inert text, while unsafe provider URLs are rejected.
 
 A merge plan contains only new records as inserts and preserves conflicts for
 an explicit later decision; it never silently overwrites. A replacement plan
-contains all valid records. Both retain invalid-record diagnostics. Creating a
-plan performs no mutation. The integration layer must show the preview, require
-approval, decide whether invalid records are acceptable, and send the approved
-plan to the storage package's atomic bulk operation. Replacement must not clear
-existing data unless the complete replacement can commit atomically.
+contains every valid record. If the preview contains any invalid record, both
+plan builders return a blocked (`ready: false`) result with diagnostics and no
+records that could accidentally be applied. Creating a plan performs no
+mutation. The integration layer must show the preview, require approval, and
+send only a ready plan to the storage package's atomic bulk operation.
+Replacement must not clear existing data unless the complete replacement can
+commit atomically.
 
 The public entry point is `packages/backup/src/index.ts`. It exports validation,
 preview, serialization, plan builders, constants, and TypeScript contracts.

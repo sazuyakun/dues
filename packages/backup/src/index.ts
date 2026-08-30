@@ -7,7 +7,6 @@ export {
   validateBackup,
   validateBackupPayment,
 } from "./backup";
-export { backupPaymentSchema, envelopeHeaderSchema } from "./schema";
 export {
   BACKUP_FORMAT,
   CURRENT_BACKUP_VERSION,

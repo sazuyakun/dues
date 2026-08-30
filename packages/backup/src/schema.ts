@@ -1,18 +1,34 @@
 import { z } from "zod";
+import { isIso4217CurrencyCode } from "./currencies";
 import { BACKUP_FORMAT, CURRENT_BACKUP_VERSION } from "./types";
 
-const calendarDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a YYYY-MM-DD calendar date").refine((value) => {
-  const [year, month, day] = value.split("-").map(Number);
-  if (year === undefined || month === undefined || day === undefined || year < 1) return false;
-  const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
-}, "Must be a real calendar date");
+const isCalendarDate = (value: string): boolean => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (match === null) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day <= (daysInMonth[month - 1] ?? 0);
+};
 
-const providerUrl = z.string().url("Must be a valid URL").refine((value) => {
-  const url = new URL(value);
-  if (url.protocol === "https:") return true;
-  return url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]");
-}, "Must use HTTPS (HTTP is allowed only for localhost development)");
+const calendarDate = z.string().refine(isCalendarDate, "Must be a real YYYY-MM-DD calendar date");
+
+const isSafeProviderUrl = (value: string): boolean => {
+  if (value.trim() !== value) return false;
+  try {
+    const url = new URL(value);
+    if (url.username !== "" || url.password !== "") return false;
+    if (url.protocol === "https:") return true;
+    return url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]");
+  } catch {
+    return false;
+  }
+};
+
+const providerUrl = z.string().max(2_048).refine(isSafeProviderUrl, "Must be an HTTPS URL without embedded credentials (HTTP is allowed only for localhost development)");
 
 const recurrenceSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("weekly") }).strict(),
@@ -27,10 +43,10 @@ const recurrenceSchema = z.discriminatedUnion("type", [
 ]);
 
 export const backupPaymentSchema = z.object({
-  id: z.string().trim().min(1).max(200),
-  name: z.string().min(1).max(500),
+  id: z.string().min(1).max(200).refine((value) => value.trim() === value, "Must not start or end with whitespace"),
+  name: z.string().min(1).max(500).refine((value) => value.trim().length > 0, "Must contain visible text"),
   amount: z.number().int().safe().nonnegative(),
-  currency: z.string().regex(/^[A-Z]{3}$/, "Must be a three-letter uppercase ISO 4217 code"),
+  currency: z.string().refine(isIso4217CurrencyCode, "Must be a recognized ISO 4217 code"),
   recurrence: recurrenceSchema,
   nextDueDate: calendarDate,
   status: z.enum(["active", "paused", "archived"]),
