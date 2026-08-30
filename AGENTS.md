@@ -1,7 +1,7 @@
 # Worktrees
 
 - Use only the assigned persistent worktree and its current branch.
-- Before starting work on a generic `codex/worktree-<n>` branch, rename it to a concise `codex/<task-name>` branch.
+- Before starting work, rename a generic worktree branch to a descriptive two- or three-word lowercase name such as `web-platform-shell`; use hyphens only and no namespace prefix.
 - Never switch branches or work directly on `main`, unless the user explicitly requests integration from the main worktree.
 - Before starting, inspect `git status` and preserve existing user or agent changes.
 
