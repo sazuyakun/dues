@@ -15,9 +15,9 @@ The root commands are:
 
 - `pnpm dev` — start the Vite development server;
 - `pnpm lint` — lint the workspace;
-- `pnpm typecheck` — run strict TypeScript checks;
-- `pnpm test` — run Vitest unit tests;
-- `pnpm build` — type-check and create the production application;
+- `pnpm typecheck` — run strict TypeScript checks in every workspace project;
+- `pnpm test` — run tests in every workspace project;
+- `pnpm build` — build every workspace project;
 - `pnpm test:e2e` — build and smoke-test the production app with Playwright;
 - `pnpm format:check` — check formatting without changing files.
 
