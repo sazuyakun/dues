@@ -6,10 +6,10 @@ import {
   formatCalendarDate,
   parseCalendarDate,
 } from "./calendar";
-import type { CalendarDate, Recurrence, RecurringPayment } from "./model";
+import type { CalendarDate, RecurrenceInput, RecurringPayment } from "./model";
 
 const calendarAnchor = (
-  recurrence: Recurrence,
+  recurrence: RecurrenceInput,
   date: CalendarDate,
 ): { day: number; month?: number } => {
   const parts = parseCalendarDate(date);
@@ -45,7 +45,7 @@ const calendarAnchor = (
 
 export const advanceCalendarDate = (
   date: CalendarDate,
-  recurrence: Recurrence,
+  recurrence: RecurrenceInput,
   steps = 1,
 ): CalendarDate => {
   if (!Number.isSafeInteger(steps) || steps < 1) {
