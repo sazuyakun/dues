@@ -20,6 +20,7 @@
 # Integration
 
 - Treat the main worktree as the integration workspace.
+- The instruction `update branch` explicitly authorizes fetching `origin` and rebasing the current worktree branch onto the latest `origin/main`; do not push.
 - The instruction `push to main` explicitly authorizes the complete integration workflow for the current worktree branch.
 - On `push to main`, fetch `origin`, update local `main` from `origin/main`, rebase the current worktree branch onto `main`, fast-forward `main` to that branch, and push only `main` to `origin`.
 - Stop and report any conflict, unexpected commit, or uncommitted change instead of discarding or overwriting it.
