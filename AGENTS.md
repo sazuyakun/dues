@@ -16,4 +16,11 @@
 # Handoff
 
 - Report the commit hash, tests run and their results, and any remaining concerns.
-- Treat the main worktree as the integration workspace. When explicitly requested, rebase completed branches onto `main`, fast-forward merge them one at a time, and push only `main`.
+
+# Integration
+
+- Treat the main worktree as the integration workspace.
+- The instruction `push to main` explicitly authorizes the complete integration workflow for the current worktree branch.
+- On `push to main`, fetch `origin`, update local `main` from `origin/main`, rebase the current worktree branch onto `main`, fast-forward `main` to that branch, and push only `main` to `origin`.
+- Stop and report any conflict, unexpected commit, or uncommitted change instead of discarding or overwriting it.
+- After integration, continue new tasks in the same assigned worktree and branch.
