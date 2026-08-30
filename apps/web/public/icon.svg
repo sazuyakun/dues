@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#315d51" d="M0 0h512v512H0z"/><path fill="#f8f6ef" d="M145 112h112c99 0 151 56 151 143 0 91-56 145-155 145H145V112zm97 222c54 0 83-28 83-78 0-51-29-78-83-78h-16v156h16z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <path fill="#030403" d="M0 0h512v512H0z"/>
+  <path fill="#070806" stroke="#30312a" stroke-width="16" d="M56 56h400v400H56z"/>
+  <path fill="#f2c94c" d="M80 80h24v352H80z"/>
+  <path fill="#f1eee5" d="M151 128h105c93 0 142 49 142 127 0 82-52 129-146 129H151V128zm91 195c49 0 75-23 75-67 0-45-26-67-75-67h-14v134h14z"/>
+</svg>

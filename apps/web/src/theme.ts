@@ -21,9 +21,9 @@ export function applyTheme(preference: ThemePreference): void {
 export function loadTheme(): ThemePreference {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemePreference(stored) ? stored : "system";
+    return isThemePreference(stored) ? stored : "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 
