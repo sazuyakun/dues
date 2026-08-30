@@ -4,7 +4,9 @@ The backup package is a pure boundary between untrusted JSON and storage. It
 does not read IndexedDB, download files, display HTML, or write imported data.
 
 ```text
-UTF-8 text + existing payment IDs
+canonical/storage records -> portable-field projection -> UTF-8 export
+
+UTF-8 import text + existing payment IDs
         |
         v
 size / JSON / envelope / version / count checks
@@ -21,6 +23,14 @@ explicit merge or replacement plan
         v
 user approval and atomic storage operation (integration phase)
 ```
+
+The public `toBackupPayment` adapter copies only canonical portable fields, so
+storage-only `createdAt` and `updatedAt` values cannot leak into an export. The
+`fromBackupPayment` adapter returns a detached canonical value and never creates
+persistence metadata. Although the portable field names match the canonical
+contract, these explicit adapters keep the trust and persistence boundaries
+visible and prevent structurally compatible objects from carrying extra fields
+across them.
 
 Envelope failures stop preview because the file cannot be interpreted safely.
 These include malformed JSON, an oversized file, an unsupported version, an
@@ -45,5 +55,12 @@ send only a ready plan to the storage package's atomic bulk operation.
 Replacement must not clear existing data unless the complete replacement can
 commit atomically.
 
+Immediately before applying an approved ready plan, the application service
+assigns fresh `createdAt` and `updatedAt` values from its injected clock. It
+uses one consistent operation time and submits those records through repository
+validation in the same atomic bulk mutation. Imported JSON cannot select these
+timestamps, and an import failure cannot leave timestamped partial records.
+
 The public entry point is `packages/backup/src/index.ts`. It exports validation,
-preview, serialization, plan builders, constants, and TypeScript contracts.
+preview, serialization, canonical/wire adapters, plan builders, constants, and
+TypeScript contracts.
