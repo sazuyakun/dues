@@ -206,9 +206,8 @@ a {
 .site-nav a::before {
   position: absolute;
   z-index: -1;
-  inset: -1px;
+  inset: 0;
   background: var(--field-accent);
-  clip-path: polygon(0 6%, 92% 0, 100% 17%, 97% 84%, 88% 100%, 0 92%);
   content: "";
   transform: scaleX(0);
   transform-origin: left center;
