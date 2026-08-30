@@ -16,7 +16,9 @@ URL syntax is checked here, while protocol policy belongs to backup/import and
 UI boundaries.
 
 Calendar dates use exactly `YYYY-MM-DD`. Parsing rejects impossible dates and
-all calculations use UTC calendar components, never the host timezone.
+supports years `0001` through `9999`. Calculations use UTC calendar components,
+never the host timezone. Occurrence projection ends cleanly when the next
+occurrence would fall beyond that representable range.
 
 ## Recurrence
 
@@ -25,6 +27,9 @@ all calculations use UTC calendar components, never the host timezone.
 - Yearly means one calendar year.
 - Custom intervals support positive counts of days, weeks, months, or years.
 - Counts are capped at 3,650 to reject unreasonable inputs.
+
+Only month and year custom intervals carry calendar anchors; strict validation
+rejects irrelevant anchor fields on day and week intervals.
 
 Month-based schedules retain their original day as `anchorDay`. Year-based
 schedules retain both `anchorMonth` and `anchorDay`. Record validation fills
@@ -45,8 +50,10 @@ range tomorrow through `today + 7`; “later this month” begins after that ran
 and ends on the month's final day. Each group is ordered by date, then name.
 
 Search is case-insensitive across name, category, payment-method label, and
-notes. Category and status filters use exact values. Empty filter sets match no
-records, while omitted filters impose no restriction.
+notes, using locale-independent Unicode case conversion. Category and status
+filters use exact values. Empty filter sets match no records, while omitted
+filters impose no restriction. Date ties in upcoming groups use deterministic
+binary name ordering.
 
 Totals project active occurrences from each record's `nextDueDate` within the
 requested inclusive calendar range. They therefore describe scheduled amounts,

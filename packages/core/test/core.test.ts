@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
   advanceCalendarDate,
   advancePaymentAfterPaid,
   currentPeriodTotals,
@@ -11,11 +12,17 @@ import {
   type RecurringPayment
 } from "../src";
 
-const payment = (overrides: Partial<RecurringPayment> = {}): RecurringPayment => validateRecurringPayment({
-  id: "p1", name: "Cloud", amount: 999, currency: "USD",
-  recurrence: { frequency: "monthly" }, nextDueDate: "2025-01-31", status: "active",
-  ...overrides
-});
+const payment = (overrides: Partial<RecurringPayment> = {}): RecurringPayment =>
+  validateRecurringPayment({
+    id: "p1",
+    name: "Cloud",
+    amount: 999,
+    currency: "USD",
+    recurrence: { frequency: "monthly" },
+    nextDueDate: "2025-01-31",
+    status: "active",
+    ...overrides
+  });
 
 describe("calendar schedules", () => {
   it("retains a January 31 monthly anchor after February", () => {
@@ -31,14 +38,76 @@ describe("calendar schedules", () => {
   });
 
   it("handles quarterly, yearly, and custom intervals", () => {
-    expect(advanceCalendarDate("2025-11-30", { frequency: "quarterly", anchorDay: 30 })).toBe("2026-02-28");
-    expect(advanceCalendarDate("2025-06-15", { frequency: "yearly" })).toBe("2026-06-15");
-    expect(advanceCalendarDate("2025-01-01", { frequency: "custom", interval: { count: 10, unit: "day" } })).toBe("2025-01-11");
-    expect(advanceCalendarDate("2025-01-31", { frequency: "custom", interval: { count: 2, unit: "month", anchorDay: 31 } })).toBe("2025-03-31");
+    expect(
+      advanceCalendarDate("2025-11-30", {
+        frequency: "quarterly",
+        anchorDay: 30
+      })
+    ).toBe("2026-02-28");
+    expect(
+      advanceCalendarDate(
+        "2025-11-30",
+        { frequency: "quarterly", anchorDay: 30 },
+        2
+      )
+    ).toBe("2026-05-30");
+    expect(advanceCalendarDate("2025-06-15", { frequency: "yearly" })).toBe(
+      "2026-06-15"
+    );
+    expect(
+      advanceCalendarDate("2025-01-01", {
+        frequency: "custom",
+        interval: { count: 10, unit: "day" }
+      })
+    ).toBe("2025-01-11");
+    expect(
+      advanceCalendarDate("2025-01-01", {
+        frequency: "custom",
+        interval: { count: 2, unit: "week" }
+      })
+    ).toBe("2025-01-15");
+    expect(
+      advanceCalendarDate("2025-01-31", {
+        frequency: "custom",
+        interval: { count: 2, unit: "month", anchorDay: 31 }
+      })
+    ).toBe("2025-03-31");
+    expect(
+      advanceCalendarDate("2024-02-29", {
+        frequency: "custom",
+        interval: {
+          count: 2,
+          unit: "year",
+          anchorMonth: 2,
+          anchorDay: 29
+        }
+      })
+    ).toBe("2026-02-28");
   });
 
   it("advances repeatedly past a late paid-through date", () => {
-    expect(advancePaymentAfterPaid(payment({ nextDueDate: "2025-01-01", recurrence: { frequency: "weekly" } }), "2025-02-01").nextDueDate).toBe("2025-02-05");
+    expect(
+      advancePaymentAfterPaid(
+        payment({
+          nextDueDate: "2025-01-01",
+          recurrence: { frequency: "weekly" }
+        }),
+        "2025-02-01"
+      ).nextDueDate
+    ).toBe("2025-02-05");
+  });
+
+  it.each(["paused", "archived"] as const)(
+    "does not advance a %s payment",
+    (status) => {
+      const original = payment({ status });
+      expect(advancePaymentAfterPaid(original, "2026-01-01")).toBe(original);
+    }
+  );
+
+  it("handles calendar arithmetic for years below 100 without remapping them", () => {
+    expect(addDays("0099-12-31", 1)).toBe("0100-01-01");
+    expect(addDays("0004-02-28", 1)).toBe("0004-02-29");
   });
 });
 
@@ -49,6 +118,24 @@ describe("validation", () => {
 
   it.each([-1, 1.5, Number.MAX_SAFE_INTEGER + 1])("rejects invalid amount %s", (amount) => {
     expect(safeValidateRecurringPayment({ ...payment(), amount }).success).toBe(false);
+  });
+
+  it("strictly rejects malformed record and recurrence properties", () => {
+    expect(
+      safeValidateRecurringPayment({ ...payment(), unexpected: true }).success
+    ).toBe(false);
+    expect(
+      safeValidateRecurringPayment({ ...payment(), currency: "usd" }).success
+    ).toBe(false);
+    expect(
+      safeValidateRecurringPayment({
+        ...payment(),
+        recurrence: {
+          frequency: "custom",
+          interval: { count: 1, unit: "day", anchorDay: 1 }
+        }
+      }).success
+    ).toBe(false);
   });
 });
 
@@ -70,6 +157,14 @@ describe("queries", () => {
     });
   });
 
+  it("handles grouping at the upper calendar boundary", () => {
+    const groups = groupUpcomingPayments(
+      [payment({ nextDueDate: "9999-12-31" })],
+      "9999-12-28"
+    );
+    expect(groups.nextSevenDays.map(({ id }) => id)).toEqual(["p1"]);
+  });
+
   it("searches text and filters category and status", () => {
     expect(filterPayments(items, { query: "LEGACY", categories: ["Work"], statuses: ["active"] }).map(({ id }) => id)).toEqual(["old"]);
     expect(filterPayments(items, { statuses: ["paused", "archived"] }).map(({ id }) => id)).toEqual(["paused", "archived"]);
@@ -85,5 +180,15 @@ describe("queries", () => {
     expect(totals.year).toEqual({ USD: 4400, EUR: 2500 });
   });
 
-  it("rejects impossible calendar parsing", () => expect(() => parseCalendarDate("2025-04-31")).toThrow(RangeError));
+  it("counts final-year occurrences without advancing outside the date domain", () => {
+    expect(
+      currentPeriodTotals(
+        [payment({ amount: 100, nextDueDate: "9999-12-01" })],
+        "9999-12-15"
+      )
+    ).toEqual({ month: { USD: 100 }, year: { USD: 100 } });
+  });
+
+  it("rejects impossible calendar parsing", () =>
+    expect(() => parseCalendarDate("2025-04-31")).toThrow(RangeError));
 });
