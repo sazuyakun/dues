@@ -11,7 +11,7 @@
 - Before handoff, run the smallest relevant tests or lint checks available for the changed files.
 - Review the diff and commit completed work on the current worktree branch.
 - Use a concise, descriptive commit message.
-- Never merge, rebase, push, force-push, or create a pull request unless the user explicitly requests it.
+- Never integrate branches, push, force-push, or create a pull request unless the user explicitly requests it.
 
 # Handoff
 
@@ -20,8 +20,9 @@
 # Integration
 
 - Treat the main worktree as the integration workspace.
-- The instruction `update branch` explicitly authorizes fetching `origin` and rebasing the current worktree branch onto the latest `origin/main`; do not push.
+- The instruction `update branch` explicitly authorizes fetching `origin` and merging the latest `origin/main` into the current worktree branch; do not push.
 - The instruction `push to main` explicitly authorizes the complete integration workflow for the current worktree branch.
-- On `push to main`, fetch `origin`, update local `main` from `origin/main`, rebase the current worktree branch onto `main`, fast-forward `main` to that branch, and push only `main` to `origin`.
-- Stop and report any conflict, unexpected commit, or uncommitted change instead of discarding or overwriting it.
+- On `push to main`, fetch `origin`, update local `main` from `origin/main`, merge `main` into the current worktree branch, merge that branch into `main`, and push only `main` to `origin`.
+- Resolve merge conflicts when the correct resolution is clear; otherwise stop and report them without discarding or overwriting changes.
+- Stop and report any unexpected commit or uncommitted change.
 - After integration, continue new tasks in the same assigned worktree and branch.
