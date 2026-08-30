@@ -8,23 +8,29 @@ export interface CalendarDateParts {
 }
 
 export const parseCalendarDate = (value: string): CalendarDateParts => {
-  if (!isCalendarDate(value)) throw new RangeError(`Invalid calendar date: ${value}`);
+  if (!isCalendarDate(value))
+    throw new RangeError(`Invalid calendar date: ${value}`);
   const [year, month, day] = value.split("-").map(Number);
   return { year: year!, month: month!, day: day! };
 };
 
-export const formatCalendarDate = ({ year, month, day }: CalendarDateParts): CalendarDate => {
+export const formatCalendarDate = ({
+  year,
+  month,
+  day,
+}: CalendarDateParts): CalendarDate => {
   const formattedYear = String(year).padStart(4, "0");
   const formattedMonth = String(month).padStart(2, "0");
   const formattedDay = String(day).padStart(2, "0");
   const value = `${formattedYear}-${formattedMonth}-${formattedDay}`;
-  if (!isCalendarDate(value)) throw new RangeError(`Invalid calendar date parts: ${value}`);
+  if (!isCalendarDate(value))
+    throw new RangeError(`Invalid calendar date parts: ${value}`);
   return value;
 };
 
 export const compareCalendarDates = (
   left: CalendarDate,
-  right: CalendarDate
+  right: CalendarDate,
 ): number => {
   parseCalendarDate(left);
   parseCalendarDate(right);
@@ -46,7 +52,8 @@ export const daysInMonth = (year: number, month: number): number => {
 };
 
 export const addDays = (date: CalendarDate, days: number): CalendarDate => {
-  if (!Number.isSafeInteger(days)) throw new RangeError("Days must be a safe integer");
+  if (!Number.isSafeInteger(days))
+    throw new RangeError("Days must be a safe integer");
   const { year, month, day } = parseCalendarDate(date);
   const result = new Date(0);
   result.setUTCHours(0, 0, 0, 0);
@@ -55,14 +62,14 @@ export const addDays = (date: CalendarDate, days: number): CalendarDate => {
   return formatCalendarDate({
     year: result.getUTCFullYear(),
     month: result.getUTCMonth() + 1,
-    day: result.getUTCDate()
+    day: result.getUTCDate(),
   });
 };
 
 export const addAnchoredMonths = (
   date: CalendarDate,
   months: number,
-  anchorDay: number
+  anchorDay: number,
 ): CalendarDate => {
   if (
     !Number.isSafeInteger(months) ||
@@ -75,6 +82,10 @@ export const addAnchoredMonths = (
   const parts = parseCalendarDate(date);
   const monthIndex = parts.year * 12 + parts.month - 1 + months;
   const year = Math.floor(monthIndex / 12);
-  const month = ((monthIndex % 12) + 12) % 12 + 1;
-  return formatCalendarDate({ year, month, day: Math.min(anchorDay, daysInMonth(year, month)) });
+  const month = (((monthIndex % 12) + 12) % 12) + 1;
+  return formatCalendarDate({
+    year,
+    month,
+    day: Math.min(anchorDay, daysInMonth(year, month)),
+  });
 };

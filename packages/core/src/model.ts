@@ -41,7 +41,7 @@ const customIntervalSchema = z.discriminatedUnion("unit", [
     .object({
       count: intervalCountSchema,
       unit: z.literal("month"),
-      anchorDay: anchorDaySchema
+      anchorDay: anchorDaySchema,
     })
     .strict(),
   z
@@ -49,91 +49,121 @@ const customIntervalSchema = z.discriminatedUnion("unit", [
       count: intervalCountSchema,
       unit: z.literal("year"),
       anchorDay: anchorDaySchema,
-      anchorMonth: z.number().int().min(1).max(12).optional()
+      anchorMonth: z.number().int().min(1).max(12).optional(),
     })
-    .strict()
+    .strict(),
 ]);
 
 export const recurrenceSchema = z.discriminatedUnion("frequency", [
   z.object({ frequency: z.literal("weekly") }).strict(),
-  z.object({ frequency: z.literal("monthly"), anchorDay: anchorDaySchema }).strict(),
-  z.object({ frequency: z.literal("quarterly"), anchorDay: anchorDaySchema }).strict(),
+  z
+    .object({ frequency: z.literal("monthly"), anchorDay: anchorDaySchema })
+    .strict(),
+  z
+    .object({ frequency: z.literal("quarterly"), anchorDay: anchorDaySchema })
+    .strict(),
   z
     .object({
       frequency: z.literal("yearly"),
       anchorMonth: z.number().int().min(1).max(12).optional(),
-      anchorDay: anchorDaySchema
+      anchorDay: anchorDaySchema,
     })
     .strict(),
-  z.object({
-    frequency: z.literal("custom"),
-    interval: customIntervalSchema
-  }).strict()
+  z
+    .object({
+      frequency: z.literal("custom"),
+      interval: customIntervalSchema,
+    })
+    .strict(),
 ]);
 
 export type Recurrence = z.infer<typeof recurrenceSchema>;
 
-const recurringPaymentInputSchema = z.object({
-  id: z.string().trim().min(1).max(200),
-  name: z.string().trim().min(1).max(200),
-  amount: z.number().int().nonnegative().safe(),
-  currency: z.string().regex(isoCurrencyPattern, "Expected an uppercase ISO 4217 currency code"),
-  recurrence: recurrenceSchema,
-  nextDueDate: calendarDateSchema,
-  status: z.enum(["active", "paused", "archived"]),
-  category: z.string().trim().min(1).max(100).optional(),
-  paymentMethodLabel: z.string().trim().min(1).max(100).optional(),
-  freeTrialEndDate: calendarDateSchema.optional(),
-  notes: z.string().max(10_000).optional(),
-  providerUrl: z.string().url().max(2_048).optional(),
-  reminderLeadDays: z.number().int().nonnegative().max(3650).optional()
-}).strict();
+const recurringPaymentInputSchema = z
+  .object({
+    id: z.string().trim().min(1).max(200),
+    name: z.string().trim().min(1).max(200),
+    amount: z.number().int().nonnegative().safe(),
+    currency: z
+      .string()
+      .regex(
+        isoCurrencyPattern,
+        "Expected an uppercase ISO 4217 currency code",
+      ),
+    recurrence: recurrenceSchema,
+    nextDueDate: calendarDateSchema,
+    status: z.enum(["active", "paused", "archived"]),
+    category: z.string().trim().min(1).max(100).optional(),
+    paymentMethodLabel: z.string().trim().min(1).max(100).optional(),
+    freeTrialEndDate: calendarDateSchema.optional(),
+    notes: z.string().max(10_000).optional(),
+    providerUrl: z.string().url().max(2_048).optional(),
+    reminderLeadDays: z.number().int().nonnegative().max(3650).optional(),
+  })
+  .strict();
 
-export const recurringPaymentSchema = recurringPaymentInputSchema.transform((payment) => {
-  const [, monthText, dayText] = payment.nextDueDate.split("-");
-  const anchorDay = Number(dayText);
-  const anchorMonth = Number(monthText);
-  const recurrence = payment.recurrence;
-  if (recurrence.frequency === "monthly" || recurrence.frequency === "quarterly") {
-    return {
-      ...payment,
-      recurrence: { ...recurrence, anchorDay: recurrence.anchorDay ?? anchorDay }
-    };
-  }
-  if (recurrence.frequency === "yearly") {
-    return {
-      ...payment,
-      recurrence: {
-        ...recurrence,
-        anchorDay: recurrence.anchorDay ?? anchorDay,
-        anchorMonth: recurrence.anchorMonth ?? anchorMonth
-      }
-    };
-  }
-  if (recurrence.frequency === "custom" && recurrence.interval.unit === "month") {
-    return {
-      ...payment,
-      recurrence: {
-        ...recurrence,
-        interval: { ...recurrence.interval, anchorDay: recurrence.interval.anchorDay ?? anchorDay }
-      }
-    };
-  }
-  if (recurrence.frequency === "custom" && recurrence.interval.unit === "year") {
-    return {
-      ...payment,
-      recurrence: {
-        ...recurrence,
-        interval: {
-          ...recurrence.interval,
-          anchorDay: recurrence.interval.anchorDay ?? anchorDay,
-          anchorMonth: recurrence.interval.anchorMonth ?? anchorMonth
-        }
-      }
-    };
-  }
-  return payment;
-});
+export const recurringPaymentSchema = recurringPaymentInputSchema.transform(
+  (payment) => {
+    const [, monthText, dayText] = payment.nextDueDate.split("-");
+    const anchorDay = Number(dayText);
+    const anchorMonth = Number(monthText);
+    const recurrence = payment.recurrence;
+    if (
+      recurrence.frequency === "monthly" ||
+      recurrence.frequency === "quarterly"
+    ) {
+      return {
+        ...payment,
+        recurrence: {
+          ...recurrence,
+          anchorDay: recurrence.anchorDay ?? anchorDay,
+        },
+      };
+    }
+    if (recurrence.frequency === "yearly") {
+      return {
+        ...payment,
+        recurrence: {
+          ...recurrence,
+          anchorDay: recurrence.anchorDay ?? anchorDay,
+          anchorMonth: recurrence.anchorMonth ?? anchorMonth,
+        },
+      };
+    }
+    if (
+      recurrence.frequency === "custom" &&
+      recurrence.interval.unit === "month"
+    ) {
+      return {
+        ...payment,
+        recurrence: {
+          ...recurrence,
+          interval: {
+            ...recurrence.interval,
+            anchorDay: recurrence.interval.anchorDay ?? anchorDay,
+          },
+        },
+      };
+    }
+    if (
+      recurrence.frequency === "custom" &&
+      recurrence.interval.unit === "year"
+    ) {
+      return {
+        ...payment,
+        recurrence: {
+          ...recurrence,
+          interval: {
+            ...recurrence.interval,
+            anchorDay: recurrence.interval.anchorDay ?? anchorDay,
+            anchorMonth: recurrence.interval.anchorMonth ?? anchorMonth,
+          },
+        },
+      };
+    }
+    return payment;
+  },
+);
 
 export type RecurringPayment = z.infer<typeof recurringPaymentSchema>;
 
@@ -141,6 +171,6 @@ export const validateRecurringPayment = (input: unknown): RecurringPayment =>
   recurringPaymentSchema.parse(input);
 
 export const safeValidateRecurringPayment = (
-  input: unknown
+  input: unknown,
 ): z.SafeParseReturnType<unknown, RecurringPayment> =>
   recurringPaymentSchema.safeParse(input);

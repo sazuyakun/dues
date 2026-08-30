@@ -8,10 +8,10 @@
   },
   "scripts": {
     "dev": "pnpm --filter @dues/web dev",
-    "build": "pnpm --filter @dues/web build",
+    "build": "pnpm --recursive --if-present build",
     "lint": "eslint .",
-    "typecheck": "pnpm --filter @dues/web typecheck",
-    "test": "pnpm --filter @dues/web test",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "test": "pnpm --recursive --if-present test",
     "test:e2e": "pnpm --filter @dues/web test:e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
