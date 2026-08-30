@@ -38,6 +38,15 @@ importers:
 
   apps/web:
     dependencies:
+      '@dues/backup':
+        specifier: workspace:*
+        version: link:../../packages/backup
+      '@dues/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@dues/storage':
+        specifier: workspace:*
+        version: link:../../packages/storage
       react:
         specifier: ^19.2.8
         version: 19.2.8
