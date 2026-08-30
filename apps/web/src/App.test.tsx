@@ -21,14 +21,16 @@ describe("application shell", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("persists a selected theme", () => {
+  it("defaults to the night theme and persists a new selection", () => {
     render(
       <MemoryRouter initialEntries={["/settings"]}>
         <App />
       </MemoryRouter>,
     );
-    fireEvent.click(screen.getByRole("radio", { name: /dark/i }));
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
-    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    expect(screen.getByRole("radio", { name: /night/i })).toBeChecked();
+
+    fireEvent.click(screen.getByRole("radio", { name: /paper/i }));
+    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
+    expect(document.documentElement).toHaveAttribute("data-theme", "light");
   });
 });
