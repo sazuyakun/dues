@@ -18,14 +18,17 @@ import {
 type EnvelopeHeader = z.infer<typeof envelopeHeaderSchema>;
 type IndexedPayment = { index: number; value: BackupPayment };
 
-const byteLength = (text: string): number => new TextEncoder().encode(text).byteLength;
+const byteLength = (text: string): number =>
+  new TextEncoder().encode(text).byteLength;
 
 const safeIssueMessage = (issue: ZodIssue): string => {
   switch (issue.code) {
     case "custom":
       return issue.message;
     case "invalid_type":
-      return issue.received === "undefined" ? "Required field is missing" : "Value has an invalid type";
+      return issue.received === "undefined"
+        ? "Required field is missing"
+        : "Value has an invalid type";
     case "invalid_enum_value":
     case "invalid_literal":
     case "invalid_union":
@@ -44,7 +47,10 @@ const safeIssueMessage = (issue: ZodIssue): string => {
   }
 };
 
-const zodErrors = (error: ZodError, code: "invalid_envelope" | "invalid_record"): ValidationError[] =>
+const zodErrors = (
+  error: ZodError,
+  code: "invalid_envelope" | "invalid_record",
+): ValidationError[] =>
   error.issues.map((issue) => ({
     code,
     message: safeIssueMessage(issue),
@@ -53,25 +59,45 @@ const zodErrors = (error: ZodError, code: "invalid_envelope" | "invalid_record")
 
 const parseEnvelope = (text: string): ValidationResult<EnvelopeHeader> => {
   if (byteLength(text) > MAX_BACKUP_BYTES) {
-    return { ok: false, errors: [{ code: "file_too_large", message: `Backup exceeds the ${MAX_BACKUP_BYTES}-byte limit` }] };
+    return {
+      ok: false,
+      errors: [
+        {
+          code: "file_too_large",
+          message: `Backup exceeds the ${MAX_BACKUP_BYTES}-byte limit`,
+        },
+      ],
+    };
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
-    return { ok: false, errors: [{ code: "malformed_json", message: "Backup is not valid JSON" }] };
+    return {
+      ok: false,
+      errors: [{ code: "malformed_json", message: "Backup is not valid JSON" }],
+    };
   }
 
   if (
-    typeof parsed === "object"
-    && parsed !== null
-    && "format" in parsed
-    && parsed.format === BACKUP_FORMAT
-    && "version" in parsed
-    && parsed.version !== CURRENT_BACKUP_VERSION
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "format" in parsed &&
+    parsed.format === BACKUP_FORMAT &&
+    "version" in parsed &&
+    parsed.version !== CURRENT_BACKUP_VERSION
   ) {
-    return { ok: false, errors: [{ code: "unsupported_version", message: "Backup format version is not supported", path: "version" }] };
+    return {
+      ok: false,
+      errors: [
+        {
+          code: "unsupported_version",
+          message: "Backup format version is not supported",
+          path: "version",
+        },
+      ],
+    };
   }
 
   const result = envelopeHeaderSchema.safeParse(parsed);
@@ -79,12 +105,23 @@ const parseEnvelope = (text: string): ValidationResult<EnvelopeHeader> => {
     return { ok: false, errors: zodErrors(result.error, "invalid_envelope") };
   }
   if (result.data.payments.length > MAX_BACKUP_RECORDS) {
-    return { ok: false, errors: [{ code: "too_many_records", message: `Backup exceeds the ${MAX_BACKUP_RECORDS}-record limit`, path: "payments" }] };
+    return {
+      ok: false,
+      errors: [
+        {
+          code: "too_many_records",
+          message: `Backup exceeds the ${MAX_BACKUP_RECORDS}-record limit`,
+          path: "payments",
+        },
+      ],
+    };
   }
   return { ok: true, value: result.data };
 };
 
-const validateRecords = (records: readonly unknown[]): { valid: IndexedPayment[]; invalid: InvalidImportRecord[] } => {
+const validateRecords = (
+  records: readonly unknown[],
+): { valid: IndexedPayment[]; invalid: InvalidImportRecord[] } => {
   const parsed: IndexedPayment[] = [];
   const invalid: InvalidImportRecord[] = [];
 
@@ -101,7 +138,9 @@ const validateRecords = (records: readonly unknown[]): { valid: IndexedPayment[]
   });
 
   const idCounts = new Map<string, number>();
-  parsed.forEach(({ value }) => idCounts.set(value.id, (idCounts.get(value.id) ?? 0) + 1));
+  parsed.forEach(({ value }) =>
+    idCounts.set(value.id, (idCounts.get(value.id) ?? 0) + 1),
+  );
 
   const valid: IndexedPayment[] = [];
   parsed.forEach((record) => {
@@ -111,12 +150,14 @@ const validateRecords = (records: readonly unknown[]): { valid: IndexedPayment[]
     }
     invalid.push({
       index: record.index,
-      errors: [{
-        code: "duplicate_id",
-        message: "Payment ID appears more than once in the backup",
-        path: "id",
-        recordIndex: record.index,
-      }],
+      errors: [
+        {
+          code: "duplicate_id",
+          message: "Payment ID appears more than once in the backup",
+          path: "id",
+          recordIndex: record.index,
+        },
+      ],
     });
   });
 
@@ -124,20 +165,27 @@ const validateRecords = (records: readonly unknown[]): { valid: IndexedPayment[]
   return { valid, invalid };
 };
 
-export const validateBackupPayment = (value: unknown): ValidationResult<BackupPayment> => {
+export const validateBackupPayment = (
+  value: unknown,
+): ValidationResult<BackupPayment> => {
   const result = backupPaymentSchema.safeParse(value);
   return result.success
     ? { ok: true, value: result.data as BackupPayment }
     : { ok: false, errors: zodErrors(result.error, "invalid_record") };
 };
 
-export const validateBackup = (text: string): ValidationResult<BackupEnvelope> => {
+export const validateBackup = (
+  text: string,
+): ValidationResult<BackupEnvelope> => {
   const envelope = parseEnvelope(text);
   if (!envelope.ok) return envelope;
 
   const records = validateRecords(envelope.value.payments);
   if (records.invalid.length > 0) {
-    return { ok: false, errors: records.invalid.flatMap(({ errors }) => errors) };
+    return {
+      ok: false,
+      errors: records.invalid.flatMap(({ errors }) => errors),
+    };
   }
   return {
     ok: true,
@@ -159,9 +207,14 @@ const serializeValidatedBackup = (backup: BackupEnvelope): string => {
   return `${JSON.stringify({ ...backup, payments }, null, 2)}\n`;
 };
 
-export const createBackup = (payments: readonly BackupPayment[], exportedAt: Date = new Date()): BackupEnvelope => {
+export const createBackup = (
+  payments: readonly BackupPayment[],
+  exportedAt: Date = new Date(),
+): BackupEnvelope => {
   if (payments.length > MAX_BACKUP_RECORDS) {
-    throw new RangeError(`Cannot export more than ${MAX_BACKUP_RECORDS} payments`);
+    throw new RangeError(
+      `Cannot export more than ${MAX_BACKUP_RECORDS} payments`,
+    );
   }
   const candidate: BackupEnvelope = {
     format: BACKUP_FORMAT,
@@ -172,11 +225,14 @@ export const createBackup = (payments: readonly BackupPayment[], exportedAt: Dat
   const result = validateBackup(JSON.stringify(candidate));
   if (!result.ok) {
     const message = result.errors[0]?.message ?? "validation failed";
-    if (result.errors[0]?.code === "file_too_large") throw new RangeError(`Cannot export backup: ${message}`);
+    if (result.errors[0]?.code === "file_too_large")
+      throw new RangeError(`Cannot export backup: ${message}`);
     throw new TypeError(`Cannot export invalid backup: ${message}`);
   }
   if (byteLength(serializeValidatedBackup(result.value)) > MAX_BACKUP_BYTES) {
-    throw new RangeError(`Cannot export backup: serialized output exceeds the ${MAX_BACKUP_BYTES}-byte limit`);
+    throw new RangeError(
+      `Cannot export backup: serialized output exceeds the ${MAX_BACKUP_BYTES}-byte limit`,
+    );
   }
   return result.value;
 };
@@ -184,16 +240,23 @@ export const createBackup = (payments: readonly BackupPayment[], exportedAt: Dat
 export const serializeBackup = (backup: BackupEnvelope): string => {
   const validated = validateBackup(JSON.stringify(backup));
   if (!validated.ok) {
-    throw new TypeError(`Cannot serialize invalid backup: ${validated.errors[0]?.message ?? "validation failed"}`);
+    throw new TypeError(
+      `Cannot serialize invalid backup: ${validated.errors[0]?.message ?? "validation failed"}`,
+    );
   }
   const serialized = serializeValidatedBackup(validated.value);
   if (byteLength(serialized) > MAX_BACKUP_BYTES) {
-    throw new RangeError(`Serialized backup exceeds the ${MAX_BACKUP_BYTES}-byte limit`);
+    throw new RangeError(
+      `Serialized backup exceeds the ${MAX_BACKUP_BYTES}-byte limit`,
+    );
   }
   return serialized;
 };
 
-export const previewImport = (text: string, existingIds: ReadonlySet<string>): ValidationResult<ImportPreview> => {
+export const previewImport = (
+  text: string,
+  existingIds: ReadonlySet<string>,
+): ValidationResult<ImportPreview> => {
   const envelope = parseEnvelope(text);
   if (!envelope.ok) return envelope;
 
@@ -217,10 +280,25 @@ export const previewImport = (text: string, existingIds: ReadonlySet<string>): V
 
 export const createMergePlan = (preview: ImportPreview): MergeImportPlan =>
   preview.invalidRecords.length > 0
-    ? { mode: "merge", ready: false, invalidRecords: [...preview.invalidRecords] }
-    : { mode: "merge", ready: true, inserts: [...preview.newRecords], conflicts: [...preview.conflicts] };
+    ? {
+        mode: "merge",
+        ready: false,
+        invalidRecords: [...preview.invalidRecords],
+      }
+    : {
+        mode: "merge",
+        ready: true,
+        inserts: [...preview.newRecords],
+        conflicts: [...preview.conflicts],
+      };
 
-export const createReplacementPlan = (preview: ImportPreview): ReplacementImportPlan =>
+export const createReplacementPlan = (
+  preview: ImportPreview,
+): ReplacementImportPlan =>
   preview.invalidRecords.length > 0
-    ? { mode: "replace", ready: false, invalidRecords: [...preview.invalidRecords] }
+    ? {
+        mode: "replace",
+        ready: false,
+        invalidRecords: [...preview.invalidRecords],
+      }
     : { mode: "replace", ready: true, records: [...preview.validRecords] };

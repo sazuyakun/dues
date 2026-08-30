@@ -4,7 +4,8 @@
 // withdrawn.
 // https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml
 // https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-three.xml
-const ISO_4217_CODES = new Set(`
+const ISO_4217_CODES = new Set(
+  `
 ADP AED AFA AFN ALK ALL AMD ANG AOA AOK AON AOR ARA ARP ARS ARY ATS AUD AWG AYM AZM AZN BAD BAM BBD BDT BEC
 BEF BEL BGJ BGK BGL BGN BHD BIF BMD BND BOB BOP BOV BRB BRC BRE BRL BRN BRR BSD BTN BUK BWP BYB BYN BYR BZD
 CAD CDF CHC CHE CHF CHW CLF CLP CNY COP COU CRC CSD CSJ CSK CUC CUP CVE CYP CZK DDM DEM DJF DKK DOP DZD ECS
@@ -17,6 +18,10 @@ SGD SHP SIT SKK SLE SLL SOS SRD SRG SSP STD STN SUR SVC SYP SZL THB TJR TJS TMM 
 TWD TZS UAH UAK UGS UGW UGX USD USN USS UYI UYN UYP UYU UYW UZS VEB VED VEF VES VNC VND VUV WST XAD XAF XAG
 XAU XBA XBB XBC XBD XCD XCG XDR XEU XFO XFU XOF XPD XPF XPT XRE XSU XTS XUA XXX YDD YER YUD YUM YUN ZAL ZAR
 ZMK ZMW ZRN ZRZ ZWC ZWD ZWG ZWL ZWN ZWR
-`.trim().split(/\s+/));
+`
+    .trim()
+    .split(/\s+/),
+);
 
-export const isIso4217CurrencyCode = (value: string): boolean => ISO_4217_CODES.has(value);
+export const isIso4217CurrencyCode = (value: string): boolean =>
+  ISO_4217_CODES.has(value);

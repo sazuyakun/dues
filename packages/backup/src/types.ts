@@ -13,7 +13,11 @@ export type Recurrence =
   | { type: "monthly" }
   | { type: "quarterly" }
   | { type: "yearly" }
-  | { type: "custom"; interval: number; unit: "days" | "weeks" | "months" | "years" };
+  | {
+      type: "custom";
+      interval: number;
+      unit: "days" | "weeks" | "months" | "years";
+    };
 
 export interface BackupPayment {
   id: PaymentId;
@@ -55,8 +59,7 @@ export interface ValidationError {
 }
 
 export type ValidationResult<T> =
-  | { ok: true; value: T }
-  | { ok: false; errors: ValidationError[] };
+  { ok: true; value: T } | { ok: false; errors: ValidationError[] };
 
 export interface InvalidImportRecord {
   index: number;
@@ -73,7 +76,12 @@ export interface ImportPreview {
 
 export type MergeImportPlan =
   | { mode: "merge"; ready: false; invalidRecords: InvalidImportRecord[] }
-  | { mode: "merge"; ready: true; inserts: BackupPayment[]; conflicts: BackupPayment[] };
+  | {
+      mode: "merge";
+      ready: true;
+      inserts: BackupPayment[];
+      conflicts: BackupPayment[];
+    };
 
 export type ReplacementImportPlan =
   | { mode: "replace"; ready: false; invalidRecords: InvalidImportRecord[] }

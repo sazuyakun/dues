@@ -27,15 +27,15 @@ The top-level object is a strict envelope; unknown properties are rejected.
 
 Each payment has these required fields:
 
-| Field | Representation |
-| --- | --- |
-| `id` | 1–200 characters, no surrounding whitespace, unique within the file |
-| `name` | 1–500 characters containing at least one non-whitespace character |
-| `amount` | Non-negative safe integer in the currency's smallest unit |
-| `currency` | Recognized current or historical ISO 4217 alphabetic code |
-| `recurrence` | Recurrence object described below |
-| `nextDueDate` | Real calendar date in `YYYY-MM-DD` form |
-| `status` | `active`, `paused`, or `archived` |
+| Field         | Representation                                                      |
+| ------------- | ------------------------------------------------------------------- |
+| `id`          | 1–200 characters, no surrounding whitespace, unique within the file |
+| `name`        | 1–500 characters containing at least one non-whitespace character   |
+| `amount`      | Non-negative safe integer in the currency's smallest unit           |
+| `currency`    | Recognized current or historical ISO 4217 alphabetic code           |
+| `recurrence`  | Recurrence object described below                                   |
+| `nextDueDate` | Real calendar date in `YYYY-MM-DD` form                             |
+| `status`      | `active`, `paused`, or `archived`                                   |
 
 Optional fields are `category` (up to 200 characters), `paymentMethodLabel`
 (up to 200 characters), `freeTrialEndDate`, `notes` (up to 10,000 characters),
