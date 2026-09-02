@@ -3,7 +3,13 @@ import {
   CURRENT_BACKUP_VERSION,
   type ImportPreview,
 } from "@dues/backup";
-import { advancePaymentAfterPaid } from "@dues/core";
+import {
+  advancePaymentAfterPaid,
+  applyPaymentChanges,
+  validateNewPaymentInput,
+  validateRecurringPayment,
+  type RecurringPayment,
+} from "@dues/core";
 import type {
   AppSettings,
   ApplicationEnvironment,
@@ -35,16 +41,22 @@ const EMPTY_RESULT: ImportResult = {
   total: 0,
 };
 
-const cloneRecord = (record: PaymentRecord): PaymentRecord => ({
-  ...record,
-  recurrence:
-    record.recurrence.frequency === "custom"
-      ? {
-          ...record.recurrence,
-          interval: { ...record.recurrence.interval },
-        }
-      : { ...record.recurrence },
+const paymentValue = (record: PaymentRecord): RecurringPayment => {
+  const { createdAt: _createdAt, updatedAt: _updatedAt, ...payment } = record;
+  return payment;
+};
+
+const validatedRecord = (record: PaymentRecord): PaymentRecord => ({
+  ...validateRecurringPayment(paymentValue(record)),
+  createdAt: record.createdAt,
+  updatedAt: record.updatedAt,
 });
+
+const cloneRecord = (record: PaymentRecord): PaymentRecord =>
+  structuredClone(record);
+
+const invalidData = (): ApplicationError =>
+  new ApplicationError("invalid-data");
 
 function assertVersion(
   record: PaymentRecord,
@@ -99,7 +111,14 @@ export function createFakePaymentService(
   initialRecords: readonly PaymentRecord[] = [],
 ): PaymentService {
   const records = new Map(
-    initialRecords.map((record) => [record.id, cloneRecord(record)]),
+    initialRecords.map((record) => {
+      try {
+        const validated = validatedRecord(record);
+        return [validated.id, validated] as const;
+      } catch {
+        throw invalidData();
+      }
+    }),
   );
 
   const requireRecord = (id: PaymentId): PaymentRecord => {
@@ -114,13 +133,17 @@ export function createFakePaymentService(
     version: ExpectedPaymentVersion,
   ): PaymentRecord => {
     assertVersion(current, version);
-    const updated = {
-      ...current,
-      ...changes,
-      id: current.id,
+    let payment: RecurringPayment;
+    try {
+      payment = applyPaymentChanges(paymentValue(current), changes);
+    } catch {
+      throw invalidData();
+    }
+    const updated: PaymentRecord = {
+      ...payment,
       createdAt: current.createdAt,
       updatedAt: environment.now().toISOString(),
-    } as PaymentRecord;
+    };
     records.set(updated.id, updated);
     return cloneRecord(updated);
   };
@@ -134,13 +157,21 @@ export function createFakePaymentService(
     create: async (input: NewPaymentInput) => {
       const id = environment.createId();
       if (records.has(id)) throw new ApplicationError("conflict");
+      let payment: RecurringPayment;
+      try {
+        payment = validateRecurringPayment({
+          ...validateNewPaymentInput(input),
+          id,
+        });
+      } catch {
+        throw invalidData();
+      }
       const timestamp = environment.now().toISOString();
-      const record = {
-        ...input,
-        id,
+      const record: PaymentRecord = {
+        ...payment,
         createdAt: timestamp,
         updatedAt: timestamp,
-      } as PaymentRecord;
+      };
       records.set(id, record);
       return cloneRecord(record);
     },
@@ -149,7 +180,10 @@ export function createFakePaymentService(
     markPaid: async (id: PaymentId, input: MarkPaidInput) => {
       const current = requireRecord(id);
       assertVersion(current, input);
-      const advanced = advancePaymentAfterPaid(current, input.paidThrough);
+      const advanced = advancePaymentAfterPaid(
+        paymentValue(current),
+        input.paidThrough,
+      );
       return persist(current, { nextDueDate: advanced.nextDueDate }, input);
     },
     pause: async (id, version) =>
