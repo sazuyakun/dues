@@ -1,11 +1,16 @@
 export { CURRENT_DATABASE_VERSION } from "./database.js";
-export { StorageError, type StorageErrorCode } from "./errors.js";
+export {
+  StorageError,
+  toStorageError,
+  type StorageErrorCode,
+} from "./errors.js";
 export { createStorage, type StorageOptions } from "./repositories.js";
 export type {
   AppSettings,
   AppSettingsPatch,
   BulkMutation,
   CalendarDate,
+  CurrencyCode,
   MinorUnitAmount,
   PaymentId,
   PaymentInput,
@@ -13,6 +18,7 @@ export type {
   PaymentRepository,
   PaymentStatus,
   Recurrence,
+  RecurringPayment,
   SettingsRepository,
   StorageRepositories,
   ThemeSetting,

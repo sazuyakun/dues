@@ -119,6 +119,9 @@ importers:
 
   packages/storage:
     dependencies:
+      '@dues/core':
+        specifier: workspace:*
+        version: link:../core
       dexie:
         specifier: ^4.0.11
         version: 4.4.5

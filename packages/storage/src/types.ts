@@ -1,52 +1,27 @@
-export type PaymentId = string;
-export type CalendarDate = `${number}-${number}-${number}`;
-export type MinorUnitAmount = number;
-export type PaymentStatus = "active" | "paused" | "archived";
+import type { CurrencyCode, PaymentId, RecurringPayment } from "@dues/core";
+
+export type {
+  CalendarDate,
+  CurrencyCode,
+  MinorUnitAmount,
+  PaymentId,
+  PaymentStatus,
+  Recurrence,
+  RecurringPayment,
+} from "@dues/core";
+
 export type ThemeSetting = "light" | "dark" | "system";
 
-export type Recurrence =
-  | { readonly frequency: "weekly" }
-  | { readonly frequency: "monthly"; readonly anchorDay?: number }
-  | { readonly frequency: "quarterly"; readonly anchorDay?: number }
-  | {
-      readonly frequency: "yearly";
-      readonly anchorDay?: number;
-      readonly anchorMonth?: number;
-    }
-  | {
-      readonly frequency: "custom";
-      readonly interval: {
-        readonly count: number;
-        readonly unit: "day" | "week" | "month" | "year";
-        readonly anchorDay?: number;
-        readonly anchorMonth?: number;
-      };
-    };
+export type PaymentInput = RecurringPayment;
 
-export interface PaymentInput {
-  readonly id: PaymentId;
-  readonly name: string;
-  readonly amount: MinorUnitAmount;
-  readonly currency: string;
-  readonly recurrence: Recurrence;
-  readonly nextDueDate: CalendarDate;
-  readonly status: PaymentStatus;
-  readonly category?: string;
-  readonly paymentMethodLabel?: string;
-  readonly freeTrialEndDate?: CalendarDate;
-  readonly notes?: string;
-  readonly providerUrl?: string;
-  readonly reminderLeadDays?: number;
-}
-
-export interface PaymentRecord extends PaymentInput {
+export type PaymentRecord = RecurringPayment & {
   readonly createdAt: string;
   readonly updatedAt: string;
-}
+};
 
 export interface AppSettings {
   readonly onboardingComplete: boolean;
-  readonly defaultCurrency: string;
+  readonly defaultCurrency: CurrencyCode;
   readonly theme: ThemeSetting;
 }
 
@@ -75,11 +50,17 @@ export interface PaymentRepository {
   list(): Promise<readonly PaymentRecord[]>;
   update(
     id: PaymentId,
-    changes: Partial<Omit<PaymentInput, "id">>,
+    changes: Partial<Omit<RecurringPayment, "id">>,
     options?: UpdatePaymentOptions,
   ): Promise<PaymentRecord>;
-  archive(id: PaymentId, options?: UpdatePaymentOptions): Promise<PaymentRecord>;
-  restore(id: PaymentId, options?: UpdatePaymentOptions): Promise<PaymentRecord>;
+  archive(
+    id: PaymentId,
+    options?: UpdatePaymentOptions,
+  ): Promise<PaymentRecord>;
+  restore(
+    id: PaymentId,
+    options?: UpdatePaymentOptions,
+  ): Promise<PaymentRecord>;
   delete(id: PaymentId, options?: UpdatePaymentOptions): Promise<void>;
   applyBulk(mutations: readonly BulkMutation[]): Promise<void>;
 }
