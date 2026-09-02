@@ -1,5 +1,11 @@
 import type { ImportPreview } from "@dues/backup";
-import type { CalendarDate, PaymentId, RecurringPayment } from "@dues/core";
+import type {
+  CalendarDate,
+  NewPaymentInput as CoreNewPaymentInput,
+  PaymentChanges as CorePaymentChanges,
+  PaymentId,
+  RecurringPayment,
+} from "@dues/core";
 import type { AppSettings, AppSettingsPatch } from "@dues/storage";
 
 export type PaymentRecord = RecurringPayment & {
@@ -7,9 +13,9 @@ export type PaymentRecord = RecurringPayment & {
   readonly updatedAt: string;
 };
 
-export type NewPaymentInput = Omit<RecurringPayment, "id">;
+export type NewPaymentInput = CoreNewPaymentInput;
 
-export type PaymentChanges = Partial<Omit<RecurringPayment, "id">>;
+export type PaymentChanges = CorePaymentChanges;
 
 export interface ExpectedPaymentVersion {
   readonly expectedUpdatedAt: string;

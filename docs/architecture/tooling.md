@@ -52,6 +52,11 @@ requires the `updatedAt` value from the record the user acted on. A stale token
 is reported as a conflict so the feature can reload instead of overwriting a
 newer local change.
 
+Create and edit operations use `NewPaymentInput` and `PaymentChanges` directly
+from `@dues/core`. This keeps user-facing recurrence input, anchor derivation,
+field limits, and partial-edit validation on the same canonical schemas used by
+storage and backup adapters.
+
 `ApplicationProvider` accepts an asynchronous initializer and exposes three
 startup states: initializing, ready, and display-safe failure. The provider
 closes initialized resources on unmount and offers retry after recoverable
