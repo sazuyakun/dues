@@ -30,19 +30,20 @@ Each payment has these required fields:
 | Field         | Representation                                                      |
 | ------------- | ------------------------------------------------------------------- |
 | `id`          | 1–200 characters, no surrounding whitespace, unique within the file |
-| `name`        | 1–200 characters, no surrounding whitespace                         |
+| `name`        | 1–500 characters containing visible text                            |
 | `amount`      | Non-negative safe integer in the currency's smallest unit           |
 | `currency`    | Recognized current or historical ISO 4217 alphabetic code           |
 | `recurrence`  | Recurrence object described below                                   |
 | `nextDueDate` | Real calendar date in `YYYY-MM-DD` form                             |
 | `status`      | `active`, `paused`, or `archived`                                   |
 
-Optional fields are `category` (1–100 characters), `paymentMethodLabel` (1–100
+Optional fields are `category` (1–200 characters), `paymentMethodLabel` (1–200
 characters), `freeTrialEndDate`, `notes` (up to 10,000 characters),
-`providerUrl` (up to 2,048 characters), and `reminderLeadDays`. Category and
-payment-method labels cannot have surrounding whitespace. Dates use the same
-strict calendar representation. Reminder lead time is a non-negative integer
-number of days, limited to 3,650. Unknown record properties are rejected.
+`providerUrl` (up to 2,048 characters), and `reminderLeadDays`. Names,
+categories, and payment-method labels must contain non-whitespace text; their
+content is otherwise preserved exactly. Dates use the same strict calendar
+representation. Reminder lead time is a non-negative integer number of days,
+limited to 3,650. Unknown record properties are rejected.
 
 The recurrence discriminator is `frequency`, matching the canonical Dues
 payment contract. Weekly recurrence contains only its frequency:

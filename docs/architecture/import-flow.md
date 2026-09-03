@@ -21,7 +21,7 @@ preview: valid + invalid + new + conflicts
 explicit merge or replacement plan
         |
         v
-user approval and atomic storage operation (integration phase)
+user confirmation and atomic application-service operation
 ```
 
 The public `toBackupPayment` adapter copies only canonical portable fields, so
@@ -60,6 +60,31 @@ assigns fresh `createdAt` and `updatedAt` values from its injected clock. It
 uses one consistent operation time and submits those records through repository
 validation in the same atomic bulk mutation. Imported JSON cannot select these
 timestamps, and an import failure cannot leave timestamped partial records.
+
+## Browser workflow
+
+The route-level backup feature owns the browser file boundary. Export asks the
+application service for deterministic JSON, creates an `application/json` Blob,
+and downloads it with the service-provided local-date filename. The object URL
+is revoked after the browser has received the click. Before this action, the
+screen identifies the payment metadata in the file and states that the export
+is plain text and unencrypted.
+
+Import uses a labelled file input and reads the selected file explicitly as
+UTF-8. The feature rejects a browser-reported size above 5 MiB before reading;
+the backup package applies the same byte limit to the decoded text so a caller
+cannot bypass it. Envelope failures receive a display-safe explanation without
+showing imported content. A trusted envelope produces counts and ruled lists
+for valid, invalid, new, duplicate, and conflicting records.
+
+Invalid or duplicate records disable both import choices. A ready merge is
+described as insert-only: it preserves every local record and skips conflicts.
+A ready replacement is described as the complete future register, including
+the removal of local records absent from the backup. Each choice opens an
+accessible confirmation dialog before calling the application service. The UI
+discards the preview as soon as an approved operation starts, on success or
+failure, so retry requires reading and validating the file again rather than
+reusing a stale snapshot.
 
 The public entry point is `packages/backup/src/index.ts`. It exports validation,
 preview, serialization, canonical/wire adapters, plan builders, constants, and

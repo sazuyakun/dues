@@ -99,15 +99,12 @@ const recurrenceSchema = z.discriminatedUnion("frequency", [
     .strict(),
 ]);
 
-const requiredTrimmedText = (maximumLength: number) =>
+const requiredVisibleText = (maximumLength: number) =>
   z
     .string()
     .min(1)
     .max(maximumLength)
-    .refine(
-      (value) => value.trim() === value && value.length > 0,
-      "Must not start or end with whitespace",
-    );
+    .refine((value) => value.trim().length > 0, "Must contain visible text");
 
 export const backupPaymentSchema = z
   .object({
@@ -119,7 +116,7 @@ export const backupPaymentSchema = z
         (value) => value.trim() === value,
         "Must not start or end with whitespace",
       ),
-    name: requiredTrimmedText(200),
+    name: requiredVisibleText(500),
     amount: z.number().int().safe().nonnegative(),
     currency: z
       .string()
@@ -127,8 +124,8 @@ export const backupPaymentSchema = z
     recurrence: recurrenceSchema,
     nextDueDate: calendarDate,
     status: z.enum(["active", "paused", "archived"]),
-    category: requiredTrimmedText(100).optional(),
-    paymentMethodLabel: requiredTrimmedText(100).optional(),
+    category: requiredVisibleText(200).optional(),
+    paymentMethodLabel: requiredVisibleText(200).optional(),
     freeTrialEndDate: calendarDate.optional(),
     notes: z.string().max(10_000).optional(),
     providerUrl: providerUrl.optional(),
