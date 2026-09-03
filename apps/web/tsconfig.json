@@ -12,6 +12,11 @@
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "paths": {
+      "@dues/backup": ["../../packages/backup/src/index.ts"],
+      "@dues/core": ["../../packages/core/src/index.ts"],
+      "@dues/storage": ["../../packages/storage/src/index.ts"]
+    },
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

@@ -31,11 +31,16 @@ export class StorageError extends Error {
   }
 }
 
-export function toStorageError(error: unknown, fallback: StorageErrorCode): StorageError {
+export function toStorageError(
+  error: unknown,
+  fallback: StorageErrorCode,
+): StorageError {
   if (error instanceof StorageError) return error;
   const name = error instanceof Error ? error.name : "";
-  if (name === "QuotaExceededError") return new StorageError("quota", { cause: error });
-  if (name === "ConstraintError") return new StorageError("duplicate", { cause: error });
+  if (name === "QuotaExceededError")
+    return new StorageError("quota", { cause: error });
+  if (name === "ConstraintError")
+    return new StorageError("duplicate", { cause: error });
   if (name === "DatabaseClosedError" || name === "MissingAPIError") {
     return new StorageError("unavailable", { cause: error });
   }
