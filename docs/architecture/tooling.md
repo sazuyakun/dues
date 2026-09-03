@@ -27,9 +27,9 @@ browser-test steps. The build and test tools are development dependencies only.
 ## Web shell
 
 `apps/web` is a React application built by Vite. React Router owns the shell's
-Upcoming, Payments, Add/Edit, Backup, and Settings routes. Their content is
-intentionally illustrative in Phase 1; payment calculations, persistence, and
-backup parsing belong to the independently developed shared packages.
+Upcoming, Payments, Add/Edit, Backup, and Settings routes. `AppRoutes` composes
+the public entry point from each production feature directory. There are no
+sample-payment pages or route fallbacks in the production application.
 
 The responsive layout uses a compact header register on wide and narrow
 screens. It uses system fonts and contains no external scripts, fonts, images,
@@ -82,13 +82,29 @@ Feature components must not call `Date.now()`, construct billing dates from
 timestamps, or generate IDs directly.
 
 Route-level features export named components from a public `index.ts` within
-their feature directory. `AppRoutes` composes only those public exports. Until
-Gate 2 features are integrated, Phase 1 pages are isolated behind temporary
-route-level fallback exports in `app/featureFallbacks.ts`.
+their feature directory, and `AppRoutes` composes only those public exports.
+Navigation and direct URLs share the same production routes, including edit
+links addressed by payment ID.
 
 Shared UI components are intentionally small: page headings, labelled fields,
 status and loading messages, empty states, and confirmation dialogs. Feature
 specific layout and behavior remain inside each feature directory.
+
+## Verification
+
+Vitest covers domain, persistence, backup, service, and React feature behavior.
+Playwright runs the built application with real IndexedDB in Chromium, Firefox,
+and WebKit. Its journeys cover onboarding, settings, creation and editing,
+search and state transitions, upcoming groups and mark-paid advancement,
+backup merge/replacement including rollback, keyboard operation, responsive
+layouts, unexpected network requests, and close/reopen while offline.
+
+Chromium and Firefox cover both an offline service-worker reload and closing the
+browser context before reopening the persisted profile offline. Playwright
+WebKit 26.5 on macOS blocks offline navigation in its Web Inspector before the
+service worker can respond, so those two WebKit cases are recorded as skipped.
+All other MVP journeys run unchanged in WebKit; offline launch remains a manual
+native-Safari release check until the runner limitation is resolved.
 
 ## PWA and offline behavior
 

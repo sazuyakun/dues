@@ -37,12 +37,24 @@ test("loads the application shell and navigates", async ({ page }) => {
   expect(browserErrors).toEqual([]);
 });
 
-test("reopens the precached shell while offline", async ({ page, context }) => {
+test("reopens the precached shell while offline", async ({
+  browserName,
+  page,
+  context,
+}) => {
+  test.skip(
+    browserName === "webkit",
+    "Playwright WebKit blocks offline navigation before its service worker can respond.",
+  );
   await completeOnboarding(page);
   await page.goto("/upcoming");
   await page.waitForFunction(async () =>
     Boolean(await navigator.serviceWorker?.ready),
   );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Know what's due." }),
+  ).toBeVisible();
   await context.setOffline(true);
   await page.reload();
   await expect(
@@ -51,6 +63,7 @@ test("reopens the precached shell while offline", async ({ page, context }) => {
 });
 
 test("keeps the field log usable at wide and narrow viewports", async ({
+  browserName,
   page,
 }) => {
   const routes = ["upcoming", "payments", "add", "backup", "settings"];
@@ -80,7 +93,7 @@ test("keeps the field log usable at wide and narrow viewports", async ({
     );
   expect(heights.every((height) => height >= 44)).toBe(true);
 
-  await page.keyboard.press("Tab");
+  await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   const focusStyle = await page
     .locator(":focus-visible")
     .evaluate((element) => {

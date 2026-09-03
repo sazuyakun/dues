@@ -104,7 +104,9 @@ export function createPaymentService(
     restore: (id, version: ExpectedPaymentVersion) =>
       runServiceOperation(async () => {
         const current = await requirePayment(repository, id);
-        assertStatus(current, "archived");
+        if (current.status === "active") {
+          throw new ApplicationError("invalid-data");
+        }
         return repository.restore(id, version);
       }),
     delete: (id, version: ExpectedPaymentVersion) =>

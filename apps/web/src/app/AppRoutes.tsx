@@ -1,11 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { BackupRoute } from "../features/backup";
+import { PaymentFormRoute, PaymentsRoute } from "../features/payments";
 import { SettingsRoute } from "../features/settings";
-import {
-  BackupRoute,
-  PaymentFormRoute,
-  PaymentsRoute,
-  UpcomingRoute,
-} from "./featureFallbacks";
+import { UpcomingRoute } from "../features/upcoming";
 
 export function AppRoutes() {
   return (

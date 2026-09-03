@@ -18,7 +18,7 @@ test("persists default currency and appearance", async ({ page }) => {
     page.getByRole("heading", { name: "Settings saved" }),
   ).toBeVisible();
 
-  await page.getByRole("radio", { name: /paper/i }).check();
+  await page.getByText("Paper", { exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.getByRole("radio", { name: /paper/i })).toBeChecked();
 

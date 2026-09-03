@@ -31,7 +31,7 @@ describe("first-use onboarding", () => {
       screen.getByRole("button", { name: "Save and add first payment" }),
     );
     expect(
-      await screen.findByRole("heading", { name: "Add payment" }),
+      await screen.findByRole("heading", { name: "Record a due." }),
     ).toBeInTheDocument();
     expect((await settings.get()).onboardingComplete).toBe(true);
   });
