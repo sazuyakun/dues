@@ -1,8 +1,22 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@dues/backup": fileURLToPath(
+        new URL("../../packages/backup/src/index.ts", import.meta.url),
+      ),
+      "@dues/core": fileURLToPath(
+        new URL("../../packages/core/src/index.ts", import.meta.url),
+      ),
+      "@dues/storage": fileURLToPath(
+        new URL("../../packages/storage/src/index.ts", import.meta.url),
+      ),
+    },
+  },
   plugins: [
     react(),
     VitePWA({

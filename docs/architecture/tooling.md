@@ -44,6 +44,10 @@ to operating-system color-scheme changes.
 workspace dependencies. Feature code consumes those packages through the
 application contracts exported by `apps/web/src/app/index.ts`; React features
 must not open Dexie, parse backup JSON, or reproduce schedule calculations.
+During web development, TypeScript and Vite resolve these dependencies to their
+source entry points so checks do not depend on ignored or stale package build
+output. Package consumers continue to use each package's declared `dist/`
+exports after the normal workspace build.
 
 The boundary exposes `PaymentService`, `SettingsService`, and `BackupService`.
 Payment records use the canonical core payment value plus storage-owned
