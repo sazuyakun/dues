@@ -10,8 +10,8 @@
   --field-muted: #aaa89f;
   --field-subtle: #88867e;
   --field-rule: #30312a;
-  --field-accent: #f2c94c;
-  --field-focus: #fff4bd;
+  --field-accent: #a3d65c;
+  --field-focus: #dfffc2;
   --field-shell: 1240px;
   --field-inset: clamp(0.5rem, 1.5vw, 1rem);
   --field-gap: clamp(0.5rem, 1.2vw, 0.75rem);
@@ -31,7 +31,8 @@
   --field-muted: #5f6059;
   --field-subtle: #73736b;
   --field-rule: #aaa69a;
-  --field-focus: #4a3300;
+  --field-accent: #35651b;
+  --field-focus: #124622;
 }
 
 :root[data-theme="dark"] {
@@ -85,20 +86,37 @@ a {
 }
 
 .app-shell[data-context="upcoming"] {
-  --field-accent: #f2c94c;
+  --field-accent: #a3d65c;
 }
 
 .app-shell[data-context="payments"],
 .app-shell[data-context="backup"] {
-  --field-accent: #ff9f1c;
+  --field-accent: #52c993;
 }
 
 .app-shell[data-context="add"] {
-  --field-accent: #ff554f;
+  --field-accent: #69d477;
 }
 
 .app-shell[data-context="settings"] {
-  --field-accent: #e8c95b;
+  --field-accent: #87bd5b;
+}
+
+:root[data-theme="light"] .app-shell[data-context="upcoming"] {
+  --field-accent: #35651b;
+}
+
+:root[data-theme="light"] .app-shell[data-context="payments"],
+:root[data-theme="light"] .app-shell[data-context="backup"] {
+  --field-accent: #0f6b45;
+}
+
+:root[data-theme="light"] .app-shell[data-context="add"] {
+  --field-accent: #1a6430;
+}
+
+:root[data-theme="light"] .app-shell[data-context="settings"] {
+  --field-accent: #456015;
 }
 
 .field-frame {
