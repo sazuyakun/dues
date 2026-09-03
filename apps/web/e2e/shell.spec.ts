@@ -1,5 +1,16 @@
 import { expect, test } from "@playwright/test";
 
+async function completeOnboarding(page: import("@playwright/test").Page) {
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Save and add first payment" })
+    .click();
+  await expect(page).toHaveURL(/\/add$/);
+}
+
 test("loads the application shell and navigates", async ({ page }) => {
   const externalRequests: string[] = [];
   const browserErrors: string[] = [];
@@ -12,7 +23,8 @@ test("loads the application shell and navigates", async ({ page }) => {
     if (message.type() === "error") browserErrors.push(message.text());
   });
 
-  await page.goto("/");
+  await completeOnboarding(page);
+  await page.goto("/upcoming");
   await expect(
     page.getByRole("heading", { name: "Know what's due." }),
   ).toBeVisible();
@@ -26,7 +38,8 @@ test("loads the application shell and navigates", async ({ page }) => {
 });
 
 test("reopens the precached shell while offline", async ({ page, context }) => {
-  await page.goto("/");
+  await completeOnboarding(page);
+  await page.goto("/upcoming");
   await page.waitForFunction(async () =>
     Boolean(await navigator.serviceWorker?.ready),
   );
@@ -41,6 +54,7 @@ test("keeps the field log usable at wide and narrow viewports", async ({
   page,
 }) => {
   const routes = ["upcoming", "payments", "add", "backup", "settings"];
+  await completeOnboarding(page);
 
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 });

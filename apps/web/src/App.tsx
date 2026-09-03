@@ -1,35 +1,23 @@
-import { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
 import { AppRoutes } from "./app/AppRoutes";
 import { AppShell } from "./components";
-import {
-  applyTheme,
-  loadTheme,
-  saveTheme,
-  type ThemePreference,
-} from "./theme";
+import { OnboardingRoute } from "./features/onboarding";
+import { useSettings } from "./features/settings";
 
 export function App() {
-  const [theme, setTheme] = useState<ThemePreference>(loadTheme);
+  const { settings } = useSettings();
 
-  useEffect(() => {
-    applyTheme(theme);
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const updateSystemTheme = () => {
-      if (theme === "system") applyTheme(theme);
-    };
-
-    media.addEventListener("change", updateSystemTheme);
-    return () => media.removeEventListener("change", updateSystemTheme);
-  }, [theme]);
-
-  const updateTheme = (nextTheme: ThemePreference) => {
-    saveTheme(nextTheme);
-    setTheme(nextTheme);
-  };
+  if (!settings.onboardingComplete) {
+    return (
+      <Routes>
+        <Route path="*" element={<OnboardingRoute />} />
+      </Routes>
+    );
+  }
 
   return (
     <AppShell>
-      <AppRoutes theme={theme} onThemeChange={updateTheme} />
+      <AppRoutes />
     </AppShell>
   );
 }
