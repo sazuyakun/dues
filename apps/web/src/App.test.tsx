@@ -7,15 +7,38 @@ import {
 import { renderApplication } from "./test/renderApplication";
 
 describe("application shell", () => {
-  it("renders the upcoming route and navigation for a returning user", async () => {
-    const services = createTestApplicationServices({
+  const returningServices = () =>
+    createTestApplicationServices({
       settings: createFakeSettingsService({
         onboardingComplete: true,
         defaultCurrency: "USD",
         theme: "system",
       }),
     });
-    renderApplication({ services, initialEntries: ["/upcoming"] });
+
+  it.each([
+    ["/upcoming", "Know what's due."],
+    ["/payments", "Every recurring due."],
+    ["/add", "Record a due."],
+    ["/payments/missing/edit", "Payment not found"],
+    ["/backup", "Backup"],
+    ["/settings", "Settings"],
+  ])("composes the real route for %s", async (route, heading) => {
+    renderApplication({
+      services: returningServices(),
+      initialEntries: [route],
+    });
+
+    expect(
+      await screen.findByRole("heading", { name: heading }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders navigation for a returning user", async () => {
+    renderApplication({
+      services: returningServices(),
+      initialEntries: ["/upcoming"],
+    });
 
     expect(
       await screen.findByRole("heading", {

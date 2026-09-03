@@ -248,6 +248,26 @@ describe("production payment service", () => {
     ).rejects.toEqual(new ApplicationError("invalid-data"));
     expect((await repository.get("paused"))?.nextDueDate).toBe("2026-01-31");
   });
+
+  it("restores both paused and archived records to active", async () => {
+    const paused = record("paused", { status: "paused" });
+    const archived = record("archived", { status: "archived" });
+    const active = record("active");
+    const service = createPaymentService(
+      new MemoryPaymentRepository([paused, archived, active]),
+      createDeterministicEnvironment(),
+    );
+
+    await expect(
+      service.restore("paused", { expectedUpdatedAt: paused.updatedAt }),
+    ).resolves.toMatchObject({ status: "active" });
+    await expect(
+      service.restore("archived", { expectedUpdatedAt: archived.updatedAt }),
+    ).resolves.toMatchObject({ status: "active" });
+    await expect(
+      service.restore("active", { expectedUpdatedAt: active.updatedAt }),
+    ).rejects.toEqual(new ApplicationError("invalid-data"));
+  });
 });
 
 describe("production backup service", () => {

@@ -24,12 +24,12 @@ test("persists resumable onboarding and opens the first-payment route", async ({
     .click();
   await expect(page).toHaveURL(/\/add$/);
   await expect(
-    page.getByRole("heading", { name: "Add payment" }),
+    page.getByRole("heading", { name: "Record a due." }),
   ).toBeVisible();
 
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Add payment" }),
+    page.getByRole("heading", { name: "Record a due." }),
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
