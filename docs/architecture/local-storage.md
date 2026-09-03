@@ -98,6 +98,21 @@ Portable export omits storage timestamps. Import assigns fresh persistence
 metadata after backup validation; billing dates remain strict calendar dates
 and are never converted to timestamps.
 
+## Upcoming read model
+
+The route-level Upcoming feature reads records only through `PaymentService`.
+It passes those canonical values and the injected current calendar date to
+core's grouping and period-total APIs; React does not reproduce scheduling or
+currency arithmetic. Paused and archived records are therefore excluded by the
+same domain rules used elsewhere, and totals remain separate per currency.
+
+Reminder flags are derived in memory from `nextDueDate` and
+`reminderLeadDays`. They are intentionally described as in-app reminders:
+there is no background scheduler, network request, or promise that a closed
+browser will deliver them. Mark-paid sends the displayed `updatedAt` token and
+today as the paid-through date. A conflict reloads the current list before the
+safe conflict message is shown.
+
 ## Errors
 
 Callers can branch on these `StorageError.code` values:
