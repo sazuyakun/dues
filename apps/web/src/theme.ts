@@ -1,6 +1,6 @@
-export type ThemePreference = "light" | "dark" | "system";
+import type { ThemeSetting } from "@dues/storage";
 
-export const THEME_STORAGE_KEY = "dues-theme";
+export type ThemePreference = ThemeSetting;
 
 export function isThemePreference(
   value: string | null,
@@ -16,22 +16,4 @@ export function applyTheme(preference: ThemePreference): void {
     preference === "system" ? (systemIsDark ? "dark" : "light") : preference;
   document.documentElement.dataset.theme = resolved;
   document.documentElement.style.colorScheme = resolved;
-}
-
-export function loadTheme(): ThemePreference {
-  try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
-    return isThemePreference(stored) ? stored : "dark";
-  } catch {
-    return "dark";
-  }
-}
-
-export function saveTheme(preference: ThemePreference): void {
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, preference);
-  } catch {
-    // Applying the theme still works when browser storage is unavailable.
-  }
-  applyTheme(preference);
 }
