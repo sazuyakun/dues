@@ -15,7 +15,12 @@ import {
   validateBackupPayment,
   type BackupPayment,
 } from "../src";
-import { advanceCalendarDate, validateRecurringPayment } from "../../core/src";
+import {
+  PAYMENT_FIELD_LIMITS,
+  SUPPORTED_CURRENCY_CODES,
+  advanceCalendarDate,
+  validateRecurringPayment,
+} from "../../core/src";
 
 const payment = (overrides: Partial<BackupPayment> = {}): BackupPayment => ({
   id: "payment-1",
@@ -248,6 +253,30 @@ describe("canonical payment contract", () => {
       );
     }
   });
+
+  it("accepts canonical records at every shared field limit", () => {
+    const canonical = validateRecurringPayment({
+      ...payment(),
+      id: "i".repeat(PAYMENT_FIELD_LIMITS.id),
+      name: ` ${"n".repeat(PAYMENT_FIELD_LIMITS.name - 2)} `,
+      category: ` ${"c".repeat(PAYMENT_FIELD_LIMITS.category - 2)} `,
+      paymentMethodLabel: "m".repeat(PAYMENT_FIELD_LIMITS.paymentMethodLabel),
+      notes: "n".repeat(PAYMENT_FIELD_LIMITS.notes),
+      providerUrl: `https://example.com/${"p".repeat(
+        PAYMENT_FIELD_LIMITS.providerUrl - "https://example.com/".length,
+      )}`,
+      reminderLeadDays: PAYMENT_FIELD_LIMITS.reminderLeadDays,
+      recurrence: {
+        frequency: "custom",
+        interval: {
+          count: PAYMENT_FIELD_LIMITS.customIntervalCount,
+          unit: "day",
+        },
+      },
+    });
+
+    expect(toBackupPayment(canonical)).toEqual(canonical);
+  });
 });
 
 describe("strict validation", () => {
@@ -314,8 +343,9 @@ describe("strict validation", () => {
   );
 
   it("accepts current and historical ISO 4217 codes and rejects unknown codes", () => {
-    expect(validateBackupPayment(payment({ currency: "ZWG" })).ok).toBe(true);
-    expect(validateBackupPayment(payment({ currency: "BGN" })).ok).toBe(true);
+    for (const currency of SUPPORTED_CURRENCY_CODES) {
+      expect(validateBackupPayment(payment({ currency })).ok).toBe(true);
+    }
     expect(validateBackupPayment(payment({ currency: "ZZZ" })).ok).toBe(false);
   });
 
@@ -366,18 +396,25 @@ describe("strict validation", () => {
     );
   });
 
+  it("accepts the canonical text limits without transforming content", () => {
+    const record = payment({
+      name: ` ${"n".repeat(498)} `,
+      category: ` ${"c".repeat(198)} `,
+      paymentMethodLabel: " card ",
+    });
+    expect(validateBackupPayment(record)).toEqual({ ok: true, value: record });
+  });
+
   it.each([
-    { name: ` ${payment().name}` },
+    { name: " " },
     { category: " " },
-    { paymentMethodLabel: " card " },
-    { name: "x".repeat(201) },
-    { category: "x".repeat(101) },
-  ])(
-    "rejects text that canonical validation would transform or reject",
-    (value) => {
-      expect(validateBackupPayment(payment(value)).ok).toBe(false);
-    },
-  );
+    { paymentMethodLabel: "\n\t" },
+    { name: "x".repeat(501) },
+    { category: "x".repeat(201) },
+    { paymentMethodLabel: "x".repeat(201) },
+  ])("rejects text that canonical validation rejects", (value) => {
+    expect(validateBackupPayment(payment(value)).ok).toBe(false);
+  });
 
   it.each([
     "not a URL",
