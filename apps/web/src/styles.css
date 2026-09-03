@@ -1017,6 +1017,210 @@ select:disabled {
   margin-top: 0.9rem;
 }
 
+.onboarding-frame {
+  min-height: calc(100vh - (var(--field-inset) * 2));
+}
+
+.onboarding-masthead {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 4.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.onboarding-masthead > div,
+.onboarding-masthead strong,
+.onboarding-masthead small {
+  display: block;
+  min-width: 0;
+}
+
+.onboarding-masthead strong {
+  font-size: 1rem;
+  letter-spacing: -0.04em;
+}
+
+.onboarding-masthead small {
+  margin-top: 0.25rem;
+  overflow: hidden;
+  color: var(--field-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.onboarding-pane {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1.25fr) minmax(21rem, 0.75fr);
+}
+
+.onboarding-intro,
+.onboarding-setup {
+  min-width: 0;
+  padding: clamp(2rem, 6vw, 5rem);
+}
+
+.onboarding-intro {
+  display: flex;
+  min-height: 37rem;
+  flex-direction: column;
+  border-right: 1px solid var(--field-rule);
+  background: var(--field-surface-soft);
+}
+
+.onboarding-intro h1 {
+  max-width: 48rem;
+  margin: clamp(2.5rem, 8vw, 6rem) 0 0;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.075em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.privacy-register {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: auto 0 0;
+  border-top: 1px solid var(--field-rule);
+  border-bottom: 1px solid var(--field-rule);
+}
+
+.privacy-register div {
+  min-width: 0;
+  padding: 0.9rem;
+  border-right: 1px solid var(--field-rule);
+}
+
+.privacy-register div:last-child {
+  border-right: 0;
+}
+
+.privacy-register dt,
+.privacy-register dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.privacy-register dt {
+  color: var(--field-subtle);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.privacy-register dd {
+  margin-top: 0.55rem;
+  color: var(--field-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.onboarding-setup {
+  align-self: center;
+}
+
+.onboarding-setup h2,
+.settings-panel h2 {
+  margin: 0.9rem 0 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: -0.05em;
+}
+
+.onboarding-setup > p:not(.eyebrow),
+.settings-panel > p:not(.eyebrow) {
+  margin: 1.1rem 0 0;
+  color: var(--field-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.onboarding-setup .form-field,
+.settings-panel .form-field {
+  margin-top: 2rem;
+}
+
+.onboarding-setup > .status-message {
+  width: 100%;
+  margin: 1rem 0 0;
+  padding: 1rem 1.2rem;
+}
+
+.onboarding-setup > .status-message h2 {
+  font-size: 1rem;
+}
+
+.onboarding-setup > button {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+.onboarding-setup > small {
+  display: block;
+  margin-top: 1rem;
+  color: var(--field-subtle);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.onboarding-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0.9rem 1.1rem;
+  color: var(--field-subtle);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.onboarding-footer p {
+  margin: 0;
+}
+
+.settings-register {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--field-gap);
+  margin-top: var(--field-gap);
+}
+
+.settings-panel,
+.settings-register .theme-options {
+  margin: 0;
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  border: 1px solid var(--field-rule);
+}
+
+.settings-panel {
+  background: var(--field-surface-soft);
+}
+
+.page--settings > .status-message {
+  width: 100%;
+  margin: var(--field-gap) 0 0;
+  padding: 1rem 1.4rem;
+}
+
+.page--settings > .status-message h2 {
+  font-size: 1rem;
+}
+
 .site-footer {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -1091,7 +1295,9 @@ select:disabled {
   }
 
   .due-brief,
-  .backup-plate {
+  .backup-plate,
+  .onboarding-pane,
+  .settings-register {
     grid-template-columns: 1fr;
   }
 
@@ -1104,6 +1310,20 @@ select:disabled {
   .backup-object {
     min-height: 16rem;
     border-right: 0;
+  }
+
+  .onboarding-intro {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--field-rule);
+  }
+
+  .onboarding-intro h1 {
+    margin-top: 3rem;
+  }
+
+  .privacy-register {
+    margin-top: 4rem;
   }
 }
 
@@ -1216,6 +1436,19 @@ select:disabled {
     grid-template-columns: 1fr;
   }
 
+  .privacy-register {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-register div {
+    border-right: 0;
+    border-bottom: 1px solid var(--field-rule);
+  }
+
+  .privacy-register div:last-child {
+    border-bottom: 0;
+  }
+
   .payment-form fieldset,
   .theme-options {
     padding: 1rem;
@@ -1248,6 +1481,11 @@ select:disabled {
   .site-footer p:nth-child(2),
   .site-footer p:last-child {
     text-align: left;
+  }
+
+  .onboarding-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
