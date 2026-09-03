@@ -31,12 +31,19 @@ Upcoming, Payments, Add/Edit, Backup, and Settings routes. Their content is
 intentionally illustrative in Phase 1; payment calculations, persistence, and
 backup parsing belong to the independently developed shared packages.
 
-The responsive layout uses a sidebar on wide screens and bottom navigation on
-narrow screens. It uses system fonts and contains no external scripts, fonts,
-images, analytics, or advertising. Theme preference is the one shell setting
-temporarily stored directly in local storage; the integration phase will move
-it behind the storage package's settings interface. The `system` choice reacts
-to operating-system color-scheme changes.
+The responsive layout uses a compact header register on wide and narrow
+screens. It uses system fonts and contains no external scripts, fonts, images,
+analytics, or advertising. Theme preference, default currency, and onboarding
+completion are loaded and updated through `SettingsService`, backed by the local
+settings repository. The `system` theme reacts to operating-system color-scheme
+changes, while light and dark choices apply immediately and roll back if local
+persistence fails.
+
+First use is gated by the persisted onboarding flag. The onboarding view
+explains the local-first privacy boundary and saves currency selection before
+completion, allowing an interrupted setup to resume. Completing setup persists
+the flag before navigating directly to the first-payment route. A returning
+user bypasses onboarding, including when opening a deep link.
 
 ## Application boundary
 
