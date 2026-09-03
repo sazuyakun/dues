@@ -51,6 +51,21 @@ and List Three. Historical codes remain accepted so a stored record or backup
 does not become invalid when its currency is withdrawn. Currency totals remain
 separate even when more than one code is present.
 
+## Amount entry and display
+
+The payment feature discovers the selected currency's minor-unit precision and
+the user's decimal, grouping, and numeral symbols through `Intl.NumberFormat`.
+Input is normalized as text and converted directly to integer minor units;
+negative values, excess fractional digits, exponent notation, and values beyond
+JavaScript's safe-integer range are rejected. No floating-point major-unit value
+is used in the conversion.
+
+Display formatting also starts from the minor-unit integer. It divides with
+`BigInt`, then substitutes the exact remainder into localized number-format
+parts. This retains correct currency placement and localized digits without
+rounding the stored amount. Edit forms use the same rules to produce a
+round-trippable localized input value.
+
 Calendar dates use exactly `YYYY-MM-DD`. Parsing rejects impossible dates and
 supports years `0001` through `9999`. Calculations use UTC calendar components,
 never the host timezone. Occurrence projection ends cleanly when the next
