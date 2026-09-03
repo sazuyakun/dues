@@ -21,8 +21,9 @@ The root commands are:
 - `pnpm test:e2e` — build and smoke-test the production app with Playwright;
 - `pnpm format:check` — check formatting without changing files.
 
-GitHub Actions runs install, lint, type-check, unit-test, build, and Chromium
-browser-test steps. The build and test tools are development dependencies only.
+GitHub Actions runs install, lint, type-check, unit-test, build, and Chromium,
+Firefox, and WebKit browser-test steps. The build and test tools are development
+dependencies only.
 
 ## Web shell
 
