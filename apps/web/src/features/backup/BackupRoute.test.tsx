@@ -303,7 +303,7 @@ describe("approved imports", () => {
     const dialog = screen.getByRole("alertdialog", {
       name: "Merge this backup?",
     });
-    expect(dialog).toHaveTextContent("Nothing will be deleted or overwritten");
+    expect(dialog).toHaveTextContent("Existing records will not change");
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Apply merge" }),
     );
@@ -330,7 +330,9 @@ describe("approved imports", () => {
     const dialog = screen.getByRole("alertdialog", {
       name: "Replace the local register?",
     });
-    expect(dialog).toHaveTextContent("either all of it succeeds or none");
+    expect(dialog).toHaveTextContent(
+      "Records missing from this backup will be removed",
+    );
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     expect(harness.applyReplacement).not.toHaveBeenCalled();
     expect(

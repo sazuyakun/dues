@@ -13,9 +13,7 @@ describe("first-use onboarding", () => {
     renderApplication({ services, initialEntries: ["/payments"] });
 
     expect(
-      await screen.findByText(
-        /keeps recurring-payment details in this browser/i,
-      ),
+      await screen.findByRole("heading", { name: "Set up Dues" }),
     ).toBeInTheDocument();
     const currency = screen.getByRole("combobox", {
       name: "Default currency",
@@ -27,11 +25,9 @@ describe("first-use onboarding", () => {
       expect(currency).not.toBeDisabled();
     });
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Save and add first payment" }),
-    );
+    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
     expect(
-      await screen.findByRole("heading", { name: "Record a due." }),
+      await screen.findByRole("heading", { name: "Add payment" }),
     ).toBeInTheDocument();
     expect((await settings.get()).onboardingComplete).toBe(true);
   });

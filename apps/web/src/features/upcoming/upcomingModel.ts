@@ -11,24 +11,15 @@ import type { PaymentRecord } from "../../app/index";
 
 export interface UpcomingSection {
   readonly key: UpcomingGroup;
-  readonly eyebrow: string;
   readonly title: string;
 }
 
 export const UPCOMING_SECTIONS: readonly UpcomingSection[] = [
-  { key: "overdue", eyebrow: "Action needed", title: "Overdue" },
-  { key: "today", eyebrow: "Due now", title: "Today" },
-  {
-    key: "nextSevenDays",
-    eyebrow: "Coming up",
-    title: "Next seven days",
-  },
-  {
-    key: "laterThisMonth",
-    eyebrow: "This cycle",
-    title: "Later this month",
-  },
-  { key: "beyond", eyebrow: "On the horizon", title: "Beyond" },
+  { key: "overdue", title: "Overdue" },
+  { key: "today", title: "Today" },
+  { key: "nextSevenDays", title: "Next seven days" },
+  { key: "laterThisMonth", title: "Later this month" },
+  { key: "beyond", title: "Beyond" },
 ];
 
 export type UpcomingRecordGroups = Record<UpcomingGroup, PaymentRecord[]>;

@@ -92,7 +92,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         setNotice({
           tone: "success",
           title: "Settings saved",
-          message: "Your preferences are stored on this device.",
+          message: "Saved on this device.",
         });
         return true;
       } catch (error) {
@@ -130,12 +130,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   );
 
   if (state.status === "loading") {
-    return (
-      <LoadingState
-        title="Reading your preferences"
-        message="Dues is loading settings stored on this device."
-      />
-    );
+    return <LoadingState title="Loading settings" />;
   }
 
   if (state.status === "error") {

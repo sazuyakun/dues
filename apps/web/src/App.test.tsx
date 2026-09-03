@@ -17,9 +17,9 @@ describe("application shell", () => {
     });
 
   it.each([
-    ["/upcoming", "Know what's due."],
-    ["/payments", "Every recurring due."],
-    ["/add", "Record a due."],
+    ["/upcoming", "Upcoming"],
+    ["/payments", "Payments"],
+    ["/add", "Add payment"],
     ["/payments/missing/edit", "Payment not found"],
     ["/backup", "Backup"],
     ["/settings", "Settings"],
@@ -43,7 +43,7 @@ describe("application shell", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Know what's due.",
+        name: "Upcoming",
       }),
     ).toBeInTheDocument();
     expect(
@@ -56,7 +56,7 @@ describe("application shell", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Know what’s due. Keep it yours.",
+        name: "Set up Dues",
       }),
     ).toBeInTheDocument();
     expect(

@@ -5,17 +5,13 @@ export type ImportMode = "merge" | "replace";
 
 interface RecordListProps {
   readonly title: string;
-  readonly description: string;
   readonly records: ImportPreview["validRecords"];
 }
 
-function RecordList({ title, description, records }: RecordListProps) {
+function RecordList({ title, records }: RecordListProps) {
   return (
     <section className="backup-record-group">
-      <div>
-        <h3>{title}</h3>
-        <p>{description}</p>
-      </div>
+      <h3>{title}</h3>
       {records.length === 0 ? (
         <p className="backup-record-empty">None</p>
       ) : (
@@ -60,7 +56,6 @@ export function ImportPreviewPanel({
     >
       <div className="backup-preview-heading">
         <div>
-          <p className="eyebrow">Validated locally</p>
           <h2 id="backup-preview-heading">Import preview</h2>
           <p>
             <span>{filename}</span> · exported{" "}
@@ -69,9 +64,6 @@ export function ImportPreviewPanel({
             </time>
           </p>
         </div>
-        <span className="backup-version">
-          Format v{preview.envelope.version}
-        </span>
       </div>
 
       <dl className="backup-preview-counts" aria-label="Import record counts">
@@ -99,36 +91,16 @@ export function ImportPreviewPanel({
 
       {blocked && (
         <StatusMessage tone="error" title="Import blocked">
-          <p>
-            Every record must be valid and every ID unique before Dues can
-            change local data.
-          </p>
+          <p>Fix invalid or duplicate records before importing.</p>
         </StatusMessage>
       )}
 
       <div className="backup-record-groups">
-        <RecordList
-          title="Valid records"
-          description="Records whose complete portable fields passed validation."
-          records={preview.validRecords}
-        />
-        <RecordList
-          title="New records"
-          description="Merge can add these without changing an existing payment."
-          records={preview.newRecords}
-        />
-        <RecordList
-          title="Conflicts"
-          description="These IDs already exist locally. Merge preserves the local version."
-          records={preview.conflicts}
-        />
+        <RecordList title="Valid records" records={preview.validRecords} />
+        <RecordList title="New records" records={preview.newRecords} />
+        <RecordList title="Conflicts" records={preview.conflicts} />
         <section className="backup-record-group">
-          <div>
-            <h3>Invalid and duplicate records</h3>
-            <p>
-              Only safe diagnostics and one-based record positions are shown.
-            </p>
-          </div>
+          <h3>Invalid or duplicate records</h3>
           {preview.invalidRecords.length === 0 ? (
             <p className="backup-record-empty">None</p>
           ) : (
@@ -154,10 +126,7 @@ export function ImportPreviewPanel({
       <div className="backup-import-actions">
         <section>
           <h3>Merge</h3>
-          <p>
-            Add only new records. Keep every existing local record and skip all
-            conflicts.
-          </p>
+          <p>Add new records and keep existing ones.</p>
           <button
             type="button"
             disabled={blocked || busy}
@@ -168,10 +137,7 @@ export function ImportPreviewPanel({
         </section>
         <section>
           <h3>Replace</h3>
-          <p>
-            Make this backup the complete register. Existing records absent from
-            it will be removed.
-          </p>
+          <p>Use this backup as the complete register.</p>
           <button
             className="backup-replace-button"
             type="button"
@@ -211,19 +177,17 @@ export function ImportConfirmation({
     >
       {merge ? (
         <p>
-          Add {preview.newRecords.length} new payment
-          {preview.newRecords.length === 1 ? "" : "s"}, preserve every local
-          record, and skip {preview.conflicts.length} conflict
-          {preview.conflicts.length === 1 ? "" : "s"}. Nothing will be deleted
-          or overwritten.
+          Add {preview.newRecords.length} payment
+          {preview.newRecords.length === 1 ? "" : "s"} and skip{" "}
+          {preview.conflicts.length} conflict
+          {preview.conflicts.length === 1 ? "" : "s"}. Existing records will not
+          change.
         </p>
       ) : (
         <p>
-          Replace the local register with all {preview.validRecords.length}{" "}
-          payment{preview.validRecords.length === 1 ? "" : "s"} in this backup.
-          Matching IDs will be updated and local records absent from the backup
-          will be removed. The change is atomic: either all of it succeeds or
-          none of it is applied.
+          Replace everything with {preview.validRecords.length} payment
+          {preview.validRecords.length === 1 ? "" : "s"}. Records missing from
+          this backup will be removed.
         </p>
       )}
     </ConfirmDialog>

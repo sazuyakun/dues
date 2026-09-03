@@ -9,12 +9,7 @@ import {
   type ApplicationError,
   type PaymentRecord,
 } from "../../app/index";
-import {
-  FormField,
-  LoadingState,
-  PageHeader,
-  StatusMessage,
-} from "../../components";
+import { FormField, LoadingState, StatusMessage } from "../../components";
 import {
   emptyPaymentFormValues,
   paymentInputAsChanges,
@@ -162,13 +157,13 @@ export function PaymentFormRoute({
         );
         navigate("/payments", {
           replace: true,
-          state: { paymentNotice: "Payment changes saved." },
+          state: { paymentNotice: "Payment saved." },
         });
       } else {
         await payments.create(validation.input);
         navigate("/payments", {
           replace: true,
-          state: { paymentNotice: "Payment added to the local register." },
+          state: { paymentNotice: "Payment added." },
         });
       }
     } catch (error) {
@@ -186,10 +181,7 @@ export function PaymentFormRoute({
   if (loadState.status === "loading") {
     return (
       <div className="page payments-feature">
-        <LoadingState
-          title={editing ? "Loading payment record" : "Preparing payment form"}
-          message="Reading the latest local details before editing."
-        />
+        <LoadingState title="Loading payment" />
       </div>
     );
   }
@@ -198,7 +190,6 @@ export function PaymentFormRoute({
     return (
       <div className="page payments-feature">
         <StatusMessage tone="error" title="Payment not found">
-          <p>The record may have been removed in another view.</p>
           <button type="button" onClick={() => navigate("/payments")}>
             Return to payments
           </button>
@@ -229,21 +220,7 @@ export function PaymentFormRoute({
 
   return (
     <div className="page payments-feature">
-      <PageHeader
-        index="03"
-        eyebrow={editing ? "Edit register entry" : "New register entry"}
-        title={editing ? "Revise the record." : "Record a due."}
-        copy={
-          editing
-            ? "Update the details without changing the payment's private, on-device home."
-            : "Add the essentials now. Optional context can be recorded whenever it helps."
-        }
-        metadata={[
-          { label: "Mode", value: editing ? "Edit" : "Create" },
-          { label: "Storage", value: "This device" },
-          { label: "Required", value: "6 fields" },
-        ]}
-      />
+      <h1 className="page-title">{editing ? "Edit payment" : "Add payment"}</h1>
 
       {notice && (
         <p className="payment-form-notice" role="status">
@@ -265,7 +242,7 @@ export function PaymentFormRoute({
 
       <form className="payment-editor" noValidate onSubmit={submit}>
         <fieldset disabled={pending}>
-          <legend>Required payment details</legend>
+          <legend>Details</legend>
           <div className="payment-field-grid payment-field-grid--identity">
             <FormField
               id="payment-name"
@@ -287,7 +264,7 @@ export function PaymentFormRoute({
             <FormField
               id="payment-amount"
               label="Amount"
-              hint="Enter the major-unit amount using your locale's decimal separator."
+              hint="Use your locale's decimal separator."
               error={errors.amount}
               required
             >
@@ -449,7 +426,7 @@ export function PaymentFormRoute({
         </fieldset>
 
         <fieldset disabled={pending}>
-          <legend>Optional context</legend>
+          <legend>Optional</legend>
           <div className="payment-field-grid">
             <FormField
               id="payment-category"
@@ -470,8 +447,8 @@ export function PaymentFormRoute({
             </FormField>
             <FormField
               id="payment-method"
-              label="Payment-method label"
-              hint="Use a short label such as UPI or Visa; never enter a full card or account number."
+              label="Payment method"
+              hint="Label only—never enter a full card or account number."
               error={errors.paymentMethodLabel}
             >
               {(props) => (
@@ -527,8 +504,8 @@ export function PaymentFormRoute({
 
           <FormField
             id="payment-provider-url"
-            label="Provider-management URL"
-            hint="HTTPS links only. Dues never sends payment details to this address."
+            label="Provider URL"
+            hint="HTTPS only."
             error={errors.providerUrl}
           >
             {(props) => (

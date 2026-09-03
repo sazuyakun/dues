@@ -43,9 +43,7 @@ export function UpcomingTotals({ totals }: UpcomingTotalsProps) {
       aria-labelledby="upcoming-totals-title"
     >
       <header className="upcoming-block-heading">
-        <p className="eyebrow">Committed spend</p>
-        <h2 id="upcoming-totals-title">Totals by currency</h2>
-        <p>Amounts are never converted or combined across currencies.</p>
+        <h2 id="upcoming-totals-title">Totals</h2>
       </header>
       <div className="upcoming-total-grid">
         <CurrencyTotalList label="Current month" totals={totals.month} />

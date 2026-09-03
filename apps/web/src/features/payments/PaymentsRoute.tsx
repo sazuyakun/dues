@@ -17,8 +17,6 @@ import {
   ConfirmDialog,
   EmptyState,
   LoadingState,
-  PageHeader,
-  SectionHeading,
   StatusMessage,
 } from "../../components";
 import { formatMinorUnitAmount } from "./amount";
@@ -43,7 +41,7 @@ interface PendingAction {
 interface Notice {
   readonly tone: "success" | "error";
   readonly title: string;
-  readonly message: string;
+  readonly message?: string;
 }
 
 const routeNotice = (state: unknown): Notice | undefined => {
@@ -55,8 +53,7 @@ const routeNotice = (state: unknown): Notice | undefined => {
   ) {
     return {
       tone: "success",
-      title: "Register updated",
-      message: state.paymentNotice,
+      title: state.paymentNotice,
     };
   }
   return undefined;
@@ -160,8 +157,7 @@ export function PaymentsRoute({
       }
       setNotice({
         tone: "success",
-        title: "Register updated",
-        message: successMessage(action, payment),
+        title: successMessage(action, payment),
       });
     } catch (error) {
       const applicationError = toApplicationError(error);
@@ -174,7 +170,7 @@ export function PaymentsRoute({
         title: presentation.title,
         message:
           applicationError.code === "conflict"
-            ? `${presentation.message} The payment list has been reloaded.`
+            ? `${presentation.message} The list was reloaded.`
             : presentation.message,
       });
     } finally {
@@ -185,10 +181,7 @@ export function PaymentsRoute({
   if (loadState.status === "loading") {
     return (
       <div className="page payments-feature">
-        <LoadingState
-          title="Opening the payment register"
-          message="Reading recurring payments stored on this device."
-        />
+        <LoadingState title="Loading payments" />
       </div>
     );
   }
@@ -211,20 +204,9 @@ export function PaymentsRoute({
 
   return (
     <div className="page payments-feature">
-      <PageHeader
-        index="02"
-        eyebrow="Payment register"
-        title="Every recurring due."
-        copy="Search the local record, distinguish paused and archived entries, and make deliberate state changes."
-        metadata={[
-          { label: "Records", value: String(records.length).padStart(2, "0") },
-          {
-            label: "Visible",
-            value: String(visibleRecords.length).padStart(2, "0"),
-          },
-          { label: "Order", value: "Due date" },
-        ]}
-      />
+      <h1 id="payments-title" className="page-title">
+        Payments
+      </h1>
 
       {notice && (
         <section
@@ -233,14 +215,13 @@ export function PaymentsRoute({
           role={notice.tone === "error" ? "alert" : "status"}
         >
           <strong>{notice.title}</strong>
-          <p>{notice.message}</p>
+          {notice.message && <p>{notice.message}</p>}
         </section>
       )}
 
       {records.length === 0 ? (
         <EmptyState
-          title="No payments recorded"
-          message="Add the first recurring due to begin your private register."
+          title="No payments"
           action={<Link to="/add">Add a payment</Link>}
         />
       ) : (
@@ -302,19 +283,11 @@ export function PaymentsRoute({
 
           <section
             className="payment-register"
-            aria-labelledby="payment-register-title"
+            aria-labelledby="payments-title"
           >
-            <SectionHeading
-              id="payment-register-title"
-              eyebrow="Local entries"
-              title="Recurring payments"
-              count={visibleRecords.length}
-            />
-
             {visibleRecords.length === 0 ? (
               <div className="payment-no-results">
-                <p className="telemetry">No matching entries</p>
-                <p>Adjust the search or clear the active filters.</p>
+                <p className="telemetry">No matches</p>
                 <button
                   className="secondary-action"
                   type="button"
@@ -462,8 +435,7 @@ export function PaymentsRoute({
             void runAction(payment, "delete");
           }}
         >
-          This removes the local record and cannot be undone. Export a backup
-          first if you may need it later.
+          This cannot be undone.
         </ConfirmDialog>
       )}
     </div>

@@ -2,9 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function completeOnboarding(page: Page) {
   await page.goto("/");
-  await page
-    .getByRole("button", { name: "Save and add first payment" })
-    .click();
+  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/add$/);
 }
 

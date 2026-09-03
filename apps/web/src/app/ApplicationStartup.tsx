@@ -11,12 +11,7 @@ export function ApplicationStartup({ children }: ApplicationStartupProps) {
   const { state, retry } = useApplication();
 
   if (state.status === "initializing") {
-    return (
-      <LoadingState
-        title="Opening your local register"
-        message="Dues is preparing data stored on this device."
-      />
-    );
+    return <LoadingState title="Opening Dues" />;
   }
 
   if (state.status === "error") {
