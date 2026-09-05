@@ -10,6 +10,7 @@ import {
 import {
   EmptyState,
   LoadingState,
+  PageHeader,
   SectionHeading,
   StatusMessage,
 } from "../../components/index";
@@ -140,7 +141,12 @@ export function UpcomingRoute() {
   );
 
   if (loadState.status === "loading") {
-    return <LoadingState title="Loading upcoming payments" />;
+    return (
+      <LoadingState
+        title="Loading upcoming payments"
+        message="Reading recurring payments from this device."
+      />
+    );
   }
 
   if (loadState.status === "error") {
@@ -176,7 +182,20 @@ export function UpcomingRoute() {
 
   return (
     <div className="page page--upcoming upcoming-dashboard">
-      <h1 className="page-title">Upcoming</h1>
+      <PageHeader
+        index="01"
+        eyebrow="Upcoming overview"
+        title="Upcoming"
+        copy="Review active renewals, currency-separated commitments, and reminders stored on this device."
+        metadata={[
+          { label: "As of", value: today },
+          {
+            label: "Active",
+            value: String(model.activeCount).padStart(2, "0"),
+          },
+          { label: "Storage", value: "This device" },
+        ]}
+      />
 
       {actionError && (
         <StatusMessage
@@ -195,12 +214,14 @@ export function UpcomingRoute() {
       {loadState.records.length === 0 ? (
         <EmptyState
           title="No payments yet"
-          action={<Link to="/add">Add payment</Link>}
+          message="Add a recurring payment to see its next due date and totals here."
+          action={<Link to="/add">Add your first payment</Link>}
         />
       ) : model.upcomingCount === 0 ? (
         <EmptyState
           title="No upcoming payments"
-          action={<Link to="/payments">View payments</Link>}
+          message="Paused and archived records stay out of the upcoming timeline and totals."
+          action={<Link to="/payments">Review all payments</Link>}
         />
       ) : (
         <>
@@ -208,12 +229,17 @@ export function UpcomingRoute() {
 
           <aside
             className="upcoming-reminder-note"
-            aria-label="Reminder availability"
+            aria-labelledby="reminder-note-title"
           >
-            Reminders appear only while Dues is open.
+            <p className="eyebrow">Reminder scope</p>
+            <h2 id="reminder-note-title">In-app reminders</h2>
+            <p>
+              Reminder flags appear while Dues is open. Dues cannot guarantee
+              reminders while the application is closed.
+            </p>
           </aside>
 
-          {UPCOMING_SECTIONS.map(({ key, title }) => {
+          {UPCOMING_SECTIONS.map(({ key, eyebrow, title }) => {
             const records = model.groups[key];
             if (records.length === 0) return null;
             return (
@@ -224,6 +250,7 @@ export function UpcomingRoute() {
               >
                 <SectionHeading
                   id={`upcoming-${key}`}
+                  eyebrow={eyebrow}
                   title={title}
                   count={records.length}
                 />

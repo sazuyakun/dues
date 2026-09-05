@@ -1,9 +1,9 @@
 export const navigationItems = [
-  { path: "/upcoming", label: "Upcoming", shortLabel: "Upcoming" },
-  { path: "/payments", label: "Payments", shortLabel: "Payments" },
-  { path: "/add", label: "Add payment", shortLabel: "Add" },
-  { path: "/backup", label: "Backup", shortLabel: "Backup" },
-  { path: "/settings", label: "Settings", shortLabel: "Settings" },
+  { path: "/upcoming", label: "Upcoming", shortLabel: "Upcoming", index: "01" },
+  { path: "/payments", label: "Payments", shortLabel: "Payments", index: "02" },
+  { path: "/add", label: "Add payment", shortLabel: "Add", index: "03" },
+  { path: "/backup", label: "Backup", shortLabel: "Backup", index: "04" },
+  { path: "/settings", label: "Settings", shortLabel: "Settings", index: "05" },
 ] as const;
 
 export type AppContext =

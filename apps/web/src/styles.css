@@ -121,7 +121,7 @@ a {
 
 .field-frame {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   gap: var(--field-gap);
   width: min(100%, var(--field-shell));
   min-height: calc(100vh - (var(--field-inset) * 2));
@@ -173,7 +173,8 @@ a {
 }
 
 .brand-copy,
-.brand-copy strong {
+.brand-copy strong,
+.brand-copy small {
   display: block;
   min-width: 0;
 }
@@ -181,6 +182,18 @@ a {
 .brand-copy strong {
   font-size: 1.1rem;
   letter-spacing: -0.04em;
+}
+
+.brand-copy small {
+  margin-top: 0.25rem;
+  overflow: hidden;
+  color: var(--field-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .site-nav {
@@ -194,8 +207,9 @@ a {
   isolation: isolate;
   display: grid;
   min-width: 0;
-  min-height: 48px;
+  min-height: 58px;
   align-content: center;
+  gap: 0.3rem;
   margin-left: -1px;
   padding: 0.55rem 0.72rem;
   overflow: hidden;
@@ -251,6 +265,13 @@ a {
   color: var(--field-bg);
 }
 
+.nav-index {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.72;
+}
+
 .nav-label,
 .nav-label-short {
   overflow: hidden;
@@ -273,6 +294,79 @@ a {
 .page {
   width: min(100%, 68rem);
   margin: 0 auto;
+}
+
+.page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(12rem, 0.72fr);
+  gap: clamp(2rem, 6vw, 5rem);
+  align-items: end;
+  padding: clamp(1.25rem, 4vw, 3.25rem) 0 clamp(2rem, 4vw, 3rem);
+  border-bottom: 1px solid var(--field-rule);
+}
+
+.page-heading {
+  min-width: 0;
+}
+
+.page-header .eyebrow > span {
+  display: inline-block;
+  min-width: 2.3rem;
+  margin-right: 0.8rem;
+  color: var(--field-bg);
+  background: var(--field-accent);
+  text-align: center;
+}
+
+.page-header h1 {
+  max-width: 49rem;
+  margin: 1.05rem 0 0;
+  font-size: clamp(2.75rem, 6vw, 4.75rem);
+  font-weight: 700;
+  letter-spacing: -0.07em;
+  line-height: 0.96;
+  text-wrap: balance;
+}
+
+.lede {
+  max-width: 40rem;
+  margin: 1.3rem 0 0;
+  color: var(--field-muted);
+  font-size: clamp(0.9rem, 1.5vw, 1.02rem);
+  line-height: 1.65;
+}
+
+.page-metadata {
+  margin: 0;
+  border-top: 1px solid var(--field-rule);
+}
+
+.page-metadata div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.7rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--field-rule);
+}
+
+.page-metadata dt {
+  color: var(--field-subtle);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.page-metadata dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--field-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: right;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .page-title {
@@ -411,6 +505,10 @@ a {
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
+}
+
+.section-heading .eyebrow {
+  margin-bottom: 0.7rem;
 }
 
 .section-heading h2,
@@ -607,8 +705,7 @@ select:disabled {
 }
 
 .status-message,
-.loading-state,
-.empty-state {
+.loading-state {
   width: min(100%, 44rem);
   margin: clamp(2rem, 7vw, 6rem) auto;
   padding: clamp(1.5rem, 4vw, 3rem);
@@ -626,7 +723,6 @@ select:disabled {
 
 .status-message h2,
 .loading-state h2,
-.empty-state h2,
 .confirm-dialog h2 {
   margin: 0;
   color: var(--field-text);
@@ -636,15 +732,97 @@ select:disabled {
 
 .status-message p,
 .loading-state > p,
-.empty-state > p,
 .confirm-dialog > div:not(.dialog-actions) {
   color: var(--field-muted);
   line-height: 1.65;
 }
 
-.status-message button,
-.empty-state-action {
+.status-message button {
   margin-top: 1rem;
+}
+
+.loading-state h2 {
+  margin-top: 0.9rem;
+}
+
+.loading-state > p:not(.eyebrow) {
+  color: var(--field-muted);
+  line-height: 1.65;
+}
+
+.empty-state {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.42fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  width: 100%;
+  margin: var(--field-gap) 0 0;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--field-rule);
+  border-left: 0.3rem solid var(--field-accent);
+  background: var(--field-surface-soft);
+}
+
+.empty-state-copy {
+  min-width: 0;
+}
+
+.empty-state h2 {
+  margin: 0;
+  color: var(--field-text);
+  font-size: clamp(1.65rem, 4vw, 2.5rem);
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.empty-state-copy > p {
+  max-width: 36rem;
+  margin: 1rem 0 0;
+  color: var(--field-muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.empty-state-action {
+  margin-top: 1.4rem;
+}
+
+.empty-state-action a {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  min-height: 44px;
+  padding: 0.75rem 0.9rem;
+  overflow: hidden;
+  color: var(--field-accent);
+  border: 1px solid var(--field-accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1.4;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 170ms ease;
+}
+
+.empty-state-action a::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: var(--field-accent);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--field-motion) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.empty-state-action a:hover,
+.empty-state-action a:focus-visible {
+  color: var(--field-bg);
+}
+
+.empty-state-action a:hover::before,
+.empty-state-action a:focus-visible::before {
+  transform: scaleX(1);
 }
 
 .loading-track {
@@ -918,31 +1096,115 @@ select:disabled {
   padding: 0.75rem 1rem;
 }
 
-.onboarding-masthead strong {
+.onboarding-masthead > div,
+.onboarding-masthead strong,
+.onboarding-masthead small {
   display: block;
   min-width: 0;
+}
+
+.onboarding-masthead strong {
   font-size: 1rem;
   letter-spacing: -0.04em;
+}
+
+.onboarding-masthead small {
+  margin-top: 0.25rem;
+  overflow: hidden;
+  color: var(--field-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .onboarding-pane {
   display: grid;
   min-width: 0;
-  place-items: center;
-  padding: var(--field-pad);
+  grid-template-columns: minmax(0, 1.25fr) minmax(21rem, 0.75fr);
 }
 
+.onboarding-intro,
 .onboarding-setup {
-  width: min(100%, 30rem);
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  border: 1px solid var(--field-rule);
+  min-width: 0;
+  padding: clamp(2rem, 6vw, 5rem);
+}
+
+.onboarding-intro {
+  display: flex;
+  min-height: 37rem;
+  flex-direction: column;
+  border-right: 1px solid var(--field-rule);
   background: var(--field-surface-soft);
 }
 
-.onboarding-setup h1 {
+.onboarding-intro h1 {
+  max-width: 48rem;
+  margin: clamp(2.5rem, 8vw, 6rem) 0 0;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.075em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+.privacy-register {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: auto 0 0;
+  border-top: 1px solid var(--field-rule);
+  border-bottom: 1px solid var(--field-rule);
+}
+
+.privacy-register div {
+  min-width: 0;
+  padding: 0.9rem;
+  border-right: 1px solid var(--field-rule);
+}
+
+.privacy-register div:last-child {
+  border-right: 0;
+}
+
+.privacy-register dt,
+.privacy-register dd {
   margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.privacy-register dt {
+  color: var(--field-subtle);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.privacy-register dd {
+  margin-top: 0.55rem;
+  color: var(--field-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.onboarding-setup {
+  align-self: center;
+}
+
+.onboarding-setup h2 {
+  margin: 0.9rem 0 0;
   font-size: clamp(1.4rem, 3vw, 2rem);
   letter-spacing: -0.05em;
+}
+
+.onboarding-setup > p:not(.eyebrow) {
+  margin: 1.1rem 0 0;
+  color: var(--field-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
 }
 
 .onboarding-setup .form-field {
@@ -962,6 +1224,36 @@ select:disabled {
 .onboarding-setup > button {
   width: 100%;
   margin-top: 1.25rem;
+}
+
+.onboarding-setup > small {
+  display: block;
+  margin-top: 1rem;
+  color: var(--field-subtle);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.onboarding-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding: 0.9rem 1.1rem;
+  color: var(--field-subtle);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.onboarding-footer p {
+  margin: 0;
 }
 
 .settings-register {
@@ -992,6 +1284,32 @@ select:disabled {
   font-size: 1rem;
 }
 
+.site-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  min-height: 4.25rem;
+  padding: 0.9rem 1.15rem;
+  color: var(--field-subtle);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+.site-footer p:nth-child(2) {
+  text-align: center;
+}
+
+.site-footer p:last-child {
+  text-align: right;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1013,8 +1331,35 @@ select:disabled {
     min-height: 52px;
   }
 
+  .page-header {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .page-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .page-metadata div {
+    display: block;
+    padding: 0.8rem;
+    border-right: 1px solid var(--field-rule);
+  }
+
+  .page-metadata div:last-child {
+    border-right: 0;
+  }
+
+  .page-metadata dd {
+    margin-top: 0.45rem;
+    text-align: left;
+  }
+
   .due-brief,
   .backup-plate,
+  .onboarding-pane,
   .settings-register {
     grid-template-columns: 1fr;
   }
@@ -1028,6 +1373,20 @@ select:disabled {
   .backup-object {
     min-height: 16rem;
     border-right: 0;
+  }
+
+  .onboarding-intro {
+    min-height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--field-rule);
+  }
+
+  .onboarding-intro h1 {
+    margin-top: 3rem;
+  }
+
+  .privacy-register {
+    margin-top: 4rem;
   }
 }
 
@@ -1044,8 +1403,13 @@ select:disabled {
 
   .site-nav a {
     min-height: 54px;
+    gap: 0.2rem;
     padding: 0.45rem 0.25rem;
     text-align: center;
+  }
+
+  .nav-index {
+    font-size: 0.55rem;
   }
 
   .nav-label {
@@ -1055,6 +1419,34 @@ select:disabled {
   .nav-label-short {
     display: block;
     font-size: clamp(0.5rem, 2.4vw, 0.62rem);
+  }
+
+  .page-header {
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  .page-header h1 {
+    font-size: clamp(2.65rem, 14vw, 3.8rem);
+    letter-spacing: -0.075em;
+  }
+
+  .lede {
+    font-size: 0.88rem;
+  }
+
+  .page-metadata div {
+    padding: 0.7rem 0.45rem;
+  }
+
+  .page-metadata dt,
+  .page-metadata dd {
+    font-size: 0.58rem;
+  }
+
+  .empty-state {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .due-total,
@@ -1112,6 +1504,19 @@ select:disabled {
     grid-template-columns: 1fr;
   }
 
+  .privacy-register {
+    grid-template-columns: 1fr;
+  }
+
+  .privacy-register div {
+    border-right: 0;
+    border-bottom: 1px solid var(--field-rule);
+  }
+
+  .privacy-register div:last-child {
+    border-bottom: 0;
+  }
+
   .payment-form fieldset,
   .theme-options {
     padding: 1rem;
@@ -1129,6 +1534,22 @@ select:disabled {
 
   .theme-marker {
     grid-column: 2;
+  }
+
+  .site-footer {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .site-footer p,
+  .site-footer p:nth-child(2),
+  .site-footer p:last-child {
+    text-align: left;
+  }
+
+  .onboarding-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

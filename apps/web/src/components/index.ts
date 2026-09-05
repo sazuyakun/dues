@@ -3,5 +3,6 @@ export { ConfirmDialog } from "./ConfirmDialog";
 export { EmptyState } from "./EmptyState";
 export { FormField, type FieldControlProps } from "./FormField";
 export { LoadingState } from "./LoadingState";
+export { PageHeader } from "./PageHeader";
 export { SectionHeading } from "./SectionHeading";
 export { StatusMessage } from "./StatusMessage";

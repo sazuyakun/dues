@@ -56,7 +56,7 @@ describe("application shell", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Set up Dues",
+        name: "Know what’s due. Keep it yours.",
       }),
     ).toBeInTheDocument();
     expect(

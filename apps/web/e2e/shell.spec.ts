@@ -3,9 +3,11 @@ import { expect, test } from "@playwright/test";
 async function completeOnboarding(page: import("@playwright/test").Page) {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Set up Dues" }),
+    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page
+    .getByRole("button", { name: "Save and add first payment" })
+    .click();
   await expect(page).toHaveURL(/\/add$/);
 }
 
@@ -23,7 +25,9 @@ test("loads the application shell and navigates", async ({ page }) => {
 
   await completeOnboarding(page);
   await page.goto("/upcoming");
-  await expect(page.getByRole("heading", { name: "Upcoming" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Upcoming", exact: true }),
+  ).toBeVisible();
   await page
     .getByRole("link", { name: "Settings", exact: true })
     .first()
@@ -48,10 +52,14 @@ test("reopens the precached shell while offline", async ({
     Boolean(await navigator.serviceWorker?.ready),
   );
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Upcoming" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Upcoming", exact: true }),
+  ).toBeVisible();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Upcoming" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Upcoming", exact: true }),
+  ).toBeVisible();
 });
 
 test("keeps the field log usable at wide and narrow viewports", async ({

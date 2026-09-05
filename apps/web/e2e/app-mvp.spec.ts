@@ -42,7 +42,7 @@ async function completeOnboarding(page: Page, currency = "USD") {
   await page.clock.setFixedTime(FIXED_NOW);
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Set up Dues" }),
+    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
   ).toBeVisible();
 
   const currencySelect = page.getByRole("combobox", {
@@ -55,7 +55,9 @@ async function completeOnboarding(page: Page, currency = "USD") {
     ).toBeVisible();
   }
 
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page
+    .getByRole("button", { name: "Save and add first payment" })
+    .click();
   await expect(page).toHaveURL(/\/add$/);
   await expect(
     page.getByRole("heading", { name: "Add payment" }),
@@ -116,7 +118,9 @@ async function addPayment(page: Page, draft: PaymentDraft) {
   }
 
   await page.getByRole("button", { name: "Add payment" }).click();
-  await expect(page.getByRole("heading", { name: "Payments" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Payments", exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Payment added.")).toBeVisible();
 }
 
@@ -189,7 +193,7 @@ async function deleteAllPayments(page: Page) {
     await expect(page.locator(".payment-manifest-row")).toHaveCount(remaining);
   }
   await expect(
-    page.getByRole("heading", { name: "No payments" }),
+    page.getByRole("heading", { name: "No payments recorded" }),
   ).toBeVisible();
 }
 
@@ -306,7 +310,7 @@ test("supports onboarding and payment creation with keyboard-only operation", as
   const currency = page.getByRole("combobox", { name: "Default currency" });
   await tabTo(page, currency, tabKey);
   const continueButton = page.getByRole("button", {
-    name: "Continue",
+    name: "Save and add first payment",
   });
   await tabTo(page, continueButton, tabKey);
   await page.keyboard.press("Enter");
@@ -577,7 +581,9 @@ test("reopens the persisted register in a new browser context while offline", as
     );
     page = persistentContext.pages()[0] ?? (await persistentContext.newPage());
     await page.goto("/payments");
-    await expect(page.getByRole("heading", { name: "Payments" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Payments", exact: true }),
+    ).toBeVisible();
     await expect(paymentRow(page, "Offline survivor")).toBeVisible();
   } finally {
     await persistentContext?.close();

@@ -99,7 +99,7 @@ describe("UpcomingRoute", () => {
     expect(within(year).getByText("EUR")).toBeInTheDocument();
     expect(screen.getByText("Reminder window · 7 days")).toBeInTheDocument();
     expect(
-      screen.getByText(/reminders appear only while dues is open/i),
+      screen.getByText(/reminder flags appear while dues is open/i),
     ).toBeInTheDocument();
   });
 

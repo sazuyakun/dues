@@ -3,12 +3,6 @@
   margin: var(--field-gap) 0 0;
 }
 
-.upcoming-dashboard > .empty-state {
-  width: 100%;
-  margin: var(--field-gap) 0 0;
-}
-
-.upcoming-dashboard .empty-state-action a,
 .upcoming-payment-actions a {
   color: var(--field-accent);
   font-size: 0.7rem;
@@ -31,10 +25,19 @@
   background: var(--field-surface-soft);
 }
 
-.upcoming-block-heading h2 {
-  margin: 0;
+.upcoming-block-heading h2,
+.upcoming-reminder-note h2 {
+  margin: 0.8rem 0 0;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
   letter-spacing: -0.05em;
+}
+
+.upcoming-block-heading > p:last-child,
+.upcoming-reminder-note > p:last-child {
+  margin: 1.25rem 0 0;
+  color: var(--field-muted);
+  font-size: 0.78rem;
+  line-height: 1.65;
 }
 
 .upcoming-total-grid {
@@ -89,12 +92,20 @@
 }
 
 .upcoming-reminder-note {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.4fr) minmax(12rem, 0.6fr) minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: start;
   margin-top: var(--field-gap);
-  padding: 0.8rem 1rem;
-  color: var(--field-muted);
+  padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid var(--field-rule);
-  font-size: 0.72rem;
-  line-height: 1.5;
+  border-left: 0.35rem solid var(--field-accent);
+  background: var(--field-surface-soft);
+}
+
+.upcoming-reminder-note h2,
+.upcoming-reminder-note > p:last-child {
+  margin-top: 0;
 }
 
 .upcoming-section {
@@ -199,7 +210,8 @@
 }
 
 @media (max-width: 580px) {
-  .upcoming-total-grid {
+  .upcoming-total-grid,
+  .upcoming-reminder-note {
     grid-template-columns: 1fr;
   }
 

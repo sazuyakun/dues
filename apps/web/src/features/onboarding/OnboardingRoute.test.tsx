@@ -13,7 +13,9 @@ describe("first-use onboarding", () => {
     renderApplication({ services, initialEntries: ["/payments"] });
 
     expect(
-      await screen.findByRole("heading", { name: "Set up Dues" }),
+      await screen.findByRole("heading", {
+        name: "Know what’s due. Keep it yours.",
+      }),
     ).toBeInTheDocument();
     const currency = screen.getByRole("combobox", {
       name: "Default currency",
@@ -25,7 +27,9 @@ describe("first-use onboarding", () => {
       expect(currency).not.toBeDisabled();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Save and add first payment" }),
+    );
     expect(
       await screen.findByRole("heading", { name: "Add payment" }),
     ).toBeInTheDocument();

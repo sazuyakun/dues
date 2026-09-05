@@ -15,10 +15,37 @@ export function OnboardingRoute() {
           <span className="brand-mark" aria-hidden="true">
             D
           </span>
-          <strong>Dues</strong>
+          <div>
+            <strong>Dues</strong>
+            <small>Private payment register / first setup</small>
+          </div>
         </header>
 
         <main className="pane onboarding-pane">
+          <section className="onboarding-intro" aria-labelledby="welcome-title">
+            <p className="eyebrow">Field note / 001</p>
+            <h1 id="welcome-title">Know what’s due. Keep it yours.</h1>
+            <p className="lede">
+              Dues keeps recurring-payment details in this browser. There is no
+              account, analytics, advertising, or bank connection.
+            </p>
+
+            <dl className="privacy-register">
+              <div>
+                <dt>Storage</dt>
+                <dd>This device</dd>
+              </div>
+              <div>
+                <dt>Network</dt>
+                <dd>Not required</dd>
+              </div>
+              <div>
+                <dt>Credentials</dt>
+                <dd>Never collected</dd>
+              </div>
+            </dl>
+          </section>
+
           <form
             className="onboarding-setup"
             aria-busy={saving}
@@ -31,9 +58,18 @@ export function OnboardingRoute() {
               );
             }}
           >
-            <h1>Set up Dues</h1>
+            <p className="eyebrow">Local preference</p>
+            <h2>Choose your default currency</h2>
+            <p>
+              New payments will start with this currency. You can change it at
+              any time, and totals will always remain separated by currency.
+            </p>
 
-            <FormField id="onboarding-currency" label="Default currency">
+            <FormField
+              id="onboarding-currency"
+              label="Default currency"
+              hint="Your selection is saved now, so setup can resume after closing the app."
+            >
               {(props) => (
                 <select
                   {...props}
@@ -62,10 +98,19 @@ export function OnboardingRoute() {
             )}
 
             <button type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Continue"}
+              {saving ? "Saving locally…" : "Save and add first payment"}
             </button>
+            <small>
+              Do not enter card numbers, account numbers, PINs, CVVs, or bank
+              passwords in Dues.
+            </small>
           </form>
         </main>
+
+        <footer className="pane onboarding-footer">
+          <p>Dues / Local-first setup</p>
+          <p>No account · No analytics · Stored on this device</p>
+        </footer>
       </div>
     </div>
   );
