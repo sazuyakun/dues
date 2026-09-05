@@ -5,10 +5,7 @@ test("persists resumable onboarding and opens the first-payment route", async ({
 }) => {
   await page.goto("/backup");
   await expect(
-    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/no account, analytics, advertising/i),
+    page.getByRole("heading", { name: "Set up Dues" }),
   ).toBeVisible();
 
   const currency = page.getByRole("combobox", { name: "Default currency" });
@@ -19,19 +16,17 @@ test("persists resumable onboarding and opens the first-payment route", async ({
 
   await page.reload();
   await expect(currency).toHaveValue("EUR");
-  await page
-    .getByRole("button", { name: "Save and add first payment" })
-    .click();
+  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/add$/);
   await expect(
-    page.getByRole("heading", { name: "Record a due." }),
+    page.getByRole("heading", { name: "Add payment" }),
   ).toBeVisible();
 
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Record a due." }),
+    page.getByRole("heading", { name: "Add payment" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Set up Dues" })).toHaveCount(
+    0,
+  );
 });

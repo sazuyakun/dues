@@ -7,7 +7,7 @@ import {
   useApplicationServices,
   type ImportResult,
 } from "../../app/index";
-import { PageHeader, StatusMessage } from "../../components";
+import { StatusMessage } from "../../components";
 import { browserBackupFileAccess, type BackupFileAccess } from "./fileAccess";
 import {
   ImportConfirmation,
@@ -44,8 +44,7 @@ const importNotice = (error: unknown): Notice => {
     return {
       tone: "error",
       title: "This file cannot be imported",
-      message:
-        "Choose a valid, supported Dues JSON backup. The selected file may be malformed, incomplete, or from an unsupported version.",
+      message: "Choose a valid Dues JSON backup.",
     };
   }
   return applicationNotice(error);
@@ -54,7 +53,7 @@ const importNotice = (error: unknown): Notice => {
 const resultNotice = (mode: ImportMode, result: ImportResult): Notice => ({
   tone: "success",
   title: mode === "merge" ? "Merge complete" : "Replacement complete",
-  message: `Inserted ${result.inserted}, updated ${result.updated}, and removed ${result.removed}. Your local register now contains ${result.total} payment${result.total === 1 ? "" : "s"}.`,
+  message: `Added ${result.inserted}, updated ${result.updated}, removed ${result.removed}. ${result.total} payment${result.total === 1 ? "" : "s"} total.`,
 });
 
 export function BackupRoute({
@@ -84,7 +83,7 @@ export function BackupRoute({
       setNotice({
         tone: "success",
         title: "Backup downloaded",
-        message: `${download.filename} contains your current portable payment records. Store this unencrypted file somewhere private.`,
+        message: `Store ${download.filename} somewhere private.`,
       });
     } catch (error) {
       setNotice(applicationNotice(error));
@@ -106,7 +105,7 @@ export function BackupRoute({
       setNotice({
         tone: "error",
         title: "Backup is too large",
-        message: `Choose a file no larger than ${formatLimit()}. Your local data has not been changed.`,
+        message: `Choose a file no larger than ${formatLimit()}.`,
       });
       clearFileSelection();
       return;
@@ -150,75 +149,43 @@ export function BackupRoute({
 
   return (
     <div className="page page--backup">
-      <PageHeader
-        index="04"
-        eyebrow="Your data"
-        title="Backup"
-        copy="Export a portable copy or preview a recovery file before anything changes on this device."
-        metadata={[
-          { label: "Format", value: "Versioned JSON" },
-          { label: "Storage", value: "Local only" },
-          { label: "Encryption", value: "None" },
-        ]}
-      />
+      <h1 className="page-title">Backup</h1>
 
       <div className="backup-workflow">
         <section className="backup-panel" aria-labelledby="backup-export-title">
-          <div className="backup-panel-index" aria-hidden="true">
-            01
-          </div>
-          <div>
-            <p className="eyebrow">Portable export</p>
-            <h2 id="backup-export-title">Download your current register</h2>
-            <p>
-              The JSON file contains private financial metadata including
-              payment names, amounts, dates, notes, and provider links.
-            </p>
-            <p className="backup-warning">
-              This backup is plain text and is not encrypted. Anyone who can
-              read the file can read its contents.
-            </p>
-            <button type="button" disabled={busy} onClick={exportBackup}>
-              {operation === "export" ? "Preparing export…" : "Export backup"}
-            </button>
-          </div>
+          <h2 id="backup-export-title">Export</h2>
+          <p className="backup-warning">
+            Contains payment details and is not encrypted.
+          </p>
+          <button type="button" disabled={busy} onClick={exportBackup}>
+            {operation === "export" ? "Preparing…" : "Export backup"}
+          </button>
         </section>
 
         <section className="backup-panel" aria-labelledby="backup-import-title">
-          <div className="backup-panel-index" aria-hidden="true">
-            02
-          </div>
-          <div>
-            <p className="eyebrow">Safe recovery</p>
-            <h2 id="backup-import-title">Choose a backup to preview</h2>
-            <p>
-              Dues reads and validates the file locally. Selecting a file never
-              changes your register; an approved merge or replacement is still
-              required.
-            </p>
-            <label className="backup-file-field" htmlFor="backup-file">
-              <span>Backup file</span>
-              <input
-                ref={fileInput}
-                id="backup-file"
-                type="file"
-                accept=".json,application/json"
-                disabled={busy}
-                onChange={previewFile}
-              />
-              <small>UTF-8 JSON, up to {formatLimit()}</small>
-            </label>
-          </div>
+          <h2 id="backup-import-title">Import</h2>
+          <label className="backup-file-field" htmlFor="backup-file">
+            <span>Backup file</span>
+            <input
+              ref={fileInput}
+              id="backup-file"
+              type="file"
+              accept=".json,application/json"
+              disabled={busy}
+              onChange={previewFile}
+            />
+            <small>JSON · {formatLimit()} max</small>
+          </label>
         </section>
 
         {operation === "preview" && (
           <p className="backup-progress" role="status" aria-live="polite">
-            Reading and validating the selected backup…
+            Checking backup…
           </p>
         )}
         {(operation === "merge" || operation === "replace") && (
           <p className="backup-progress" role="status" aria-live="polite">
-            Applying the approved {operation} atomically…
+            Importing backup…
           </p>
         )}
 

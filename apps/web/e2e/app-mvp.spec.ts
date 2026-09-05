@@ -42,7 +42,7 @@ async function completeOnboarding(page: Page, currency = "USD") {
   await page.clock.setFixedTime(FIXED_NOW);
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Know what’s due. Keep it yours." }),
+    page.getByRole("heading", { name: "Set up Dues" }),
   ).toBeVisible();
 
   const currencySelect = page.getByRole("combobox", {
@@ -55,19 +55,17 @@ async function completeOnboarding(page: Page, currency = "USD") {
     ).toBeVisible();
   }
 
-  await page
-    .getByRole("button", { name: "Save and add first payment" })
-    .click();
+  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/add$/);
   await expect(
-    page.getByRole("heading", { name: "Record a due." }),
+    page.getByRole("heading", { name: "Add payment" }),
   ).toBeVisible();
 }
 
 async function addPayment(page: Page, draft: PaymentDraft) {
   await page.goto("/add");
   await expect(
-    page.getByRole("heading", { name: "Record a due." }),
+    page.getByRole("heading", { name: "Add payment" }),
   ).toBeVisible();
   await page.getByRole("textbox", { name: "Name" }).fill(draft.name);
   await page
@@ -97,7 +95,7 @@ async function addPayment(page: Page, draft: PaymentDraft) {
   }
   if (draft.paymentMethodLabel) {
     await page
-      .getByRole("textbox", { name: "Payment-method label" })
+      .getByRole("textbox", { name: "Payment method" })
       .fill(draft.paymentMethodLabel);
   }
   if (draft.freeTrialEndDate) {
@@ -110,7 +108,7 @@ async function addPayment(page: Page, draft: PaymentDraft) {
   }
   if (draft.providerUrl) {
     await page
-      .getByRole("textbox", { name: "Provider-management URL" })
+      .getByRole("textbox", { name: "Provider URL" })
       .fill(draft.providerUrl);
   }
   if (draft.notes) {
@@ -118,12 +116,8 @@ async function addPayment(page: Page, draft: PaymentDraft) {
   }
 
   await page.getByRole("button", { name: "Add payment" }).click();
-  await expect(
-    page.getByRole("heading", { name: "Every recurring due." }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Payment added to the local register."),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Payments" })).toBeVisible();
+  await expect(page.getByText("Payment added.")).toBeVisible();
 }
 
 const paymentRow = (page: Page, name: string): Locator =>
@@ -195,7 +189,7 @@ async function deleteAllPayments(page: Page) {
     await expect(page.locator(".payment-manifest-row")).toHaveCount(remaining);
   }
   await expect(
-    page.getByRole("heading", { name: "No payments recorded" }),
+    page.getByRole("heading", { name: "No payments" }),
   ).toBeVisible();
 }
 
@@ -231,7 +225,7 @@ test("creates, edits, filters, transitions, and deletes a persisted payment", as
   await page.goto(editUrl!);
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Revise the record." }),
+    page.getByRole("heading", { name: "Edit payment" }),
   ).toBeVisible();
   await expect(page.getByRole("textbox", { name: "Name" })).toHaveValue(
     "Month-end hosting",
@@ -241,20 +235,20 @@ test("creates, edits, filters, transitions, and deletes a persisted payment", as
   );
   await expect(page.getByLabel("Next due date")).toHaveValue("2026-01-31");
   await expect(
-    page.getByRole("textbox", { name: "Payment-method label" }),
+    page.getByRole("textbox", { name: "Payment method" }),
   ).toHaveValue("Visa business");
   await expect(page.getByLabel("Free-trial end date")).toHaveValue(
     "2026-01-15",
   );
-  await expect(
-    page.getByRole("textbox", { name: "Provider-management URL" }),
-  ).toHaveValue("https://example.com/manage");
+  await expect(page.getByRole("textbox", { name: "Provider URL" })).toHaveValue(
+    "https://example.com/manage",
+  );
 
   await page.getByRole("textbox", { name: "Name" }).fill("Edge hosting");
   await page.getByRole("textbox", { name: "Category" }).fill("Infrastructure");
   await page.getByRole("textbox", { name: "Notes" }).fill("Owner: operations");
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByText("Payment changes saved.")).toBeVisible();
+  await expect(page.getByText("Payment saved.")).toBeVisible();
 
   row = paymentRow(page, "Edge hosting");
   await expect(row).toBeVisible();
@@ -312,13 +306,13 @@ test("supports onboarding and payment creation with keyboard-only operation", as
   const currency = page.getByRole("combobox", { name: "Default currency" });
   await tabTo(page, currency, tabKey);
   const continueButton = page.getByRole("button", {
-    name: "Save and add first payment",
+    name: "Continue",
   });
   await tabTo(page, continueButton, tabKey);
   await page.keyboard.press("Enter");
 
   await expect(
-    page.getByRole("heading", { name: "Record a due." }),
+    page.getByRole("heading", { name: "Add payment" }),
   ).toBeVisible();
   const name = page.getByRole("textbox", { name: "Name" });
   await tabTo(page, name, tabKey);
@@ -583,9 +577,7 @@ test("reopens the persisted register in a new browser context while offline", as
     );
     page = persistentContext.pages()[0] ?? (await persistentContext.newPage());
     await page.goto("/payments");
-    await expect(
-      page.getByRole("heading", { name: "Every recurring due." }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Payments" })).toBeVisible();
     await expect(paymentRow(page, "Offline survivor")).toBeVisible();
   } finally {
     await persistentContext?.close();

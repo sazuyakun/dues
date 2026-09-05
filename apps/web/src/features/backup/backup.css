@@ -1,35 +1,22 @@
 .backup-workflow {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--field-gap);
   margin-top: var(--field-gap);
 }
 
 .backup-panel {
-  display: grid;
-  grid-template-columns: 5rem minmax(0, 1fr);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: clamp(1.4rem, 4vw, 2.5rem);
   border: 1px solid var(--field-rule);
   background: var(--field-surface-soft);
 }
 
-.backup-panel > div:last-child {
-  padding: clamp(1.4rem, 4vw, 2.5rem);
-}
-
-.backup-panel-index {
-  display: grid;
-  place-items: center;
-  color: var(--field-accent);
-  border-right: 1px solid var(--field-rule);
-  background: var(--field-bg);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  writing-mode: vertical-rl;
-}
-
 .backup-panel h2,
 .backup-preview h2 {
-  margin: 0.8rem 0 0;
+  margin: 0;
   font-size: clamp(1.35rem, 3vw, 2rem);
   letter-spacing: -0.045em;
 }
@@ -43,12 +30,13 @@
 }
 
 .backup-panel button {
+  align-self: flex-start;
   margin-top: 1.25rem;
 }
 
 .backup-warning {
-  max-width: 48rem;
-  padding: 1rem;
+  margin: 1.25rem 0 0;
+  padding: 0.8rem 1rem;
   color: var(--field-text) !important;
   border-left: 0.3rem solid var(--field-accent);
   background: var(--field-bg);
@@ -75,6 +63,7 @@
 }
 
 .backup-progress {
+  grid-column: 1 / -1;
   margin: 0;
   padding: 1rem 1.25rem;
   color: var(--field-text);
@@ -83,11 +72,13 @@
 }
 
 .backup-workflow > .status-message {
+  grid-column: 1 / -1;
   width: 100%;
   margin: 0;
 }
 
 .backup-preview {
+  grid-column: 1 / -1;
   border: 1px solid var(--field-rule);
   background: var(--field-surface);
 }
@@ -109,17 +100,6 @@
 .backup-record-group code {
   color: var(--field-subtle);
   font: inherit;
-}
-
-.backup-version {
-  flex: 0 0 auto;
-  padding: 0.35rem 0.55rem;
-  color: var(--field-bg);
-  background: var(--field-accent);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .backup-preview-counts {
@@ -242,8 +222,8 @@
 }
 
 @media (max-width: 720px) {
-  .backup-panel {
-    grid-template-columns: 3.25rem minmax(0, 1fr);
+  .backup-workflow {
+    grid-template-columns: 1fr;
   }
 
   .backup-preview-counts {
@@ -265,22 +245,7 @@
 }
 
 @media (max-width: 480px) {
-  .backup-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .backup-panel-index {
-    min-height: 2.25rem;
-    border-right: 0;
-    border-bottom: 1px solid var(--field-rule);
-    writing-mode: initial;
-  }
-
   .backup-preview-heading {
     display: grid;
-  }
-
-  .backup-version {
-    justify-self: start;
   }
 }

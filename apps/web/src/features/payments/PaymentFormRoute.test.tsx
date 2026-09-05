@@ -36,7 +36,7 @@ describe("PaymentFormRoute", () => {
     renderPaymentFeature(services, "/add");
 
     expect(
-      await screen.findByRole("heading", { name: "Record a due." }),
+      await screen.findByRole("heading", { name: "Add payment" }),
     ).toBeVisible();
     fireEvent.change(screen.getByRole("textbox", { name: /name/i }), {
       target: { value: "Music" },
@@ -47,7 +47,7 @@ describe("PaymentFormRoute", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add payment" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Every recurring due." }),
+      await screen.findByRole("heading", { name: "Payments" }),
     ).toBeVisible();
     const [created] = await services.payments.list();
     expect(created).toMatchObject({
@@ -66,7 +66,7 @@ describe("PaymentFormRoute", () => {
       environment: createDeterministicEnvironment({ ids: ["custom-payment"] }),
     });
     renderPaymentFeature(services, "/add");
-    await screen.findByRole("heading", { name: "Record a due." });
+    await screen.findByRole("heading", { name: "Add payment" });
 
     fireEvent.change(screen.getByRole("textbox", { name: /name/i }), {
       target: { value: "Workspace suite" },
@@ -95,10 +95,9 @@ describe("PaymentFormRoute", () => {
     fireEvent.change(screen.getByRole("textbox", { name: /category/i }), {
       target: { value: "Work" },
     });
-    fireEvent.change(
-      screen.getByRole("textbox", { name: /payment-method label/i }),
-      { target: { value: "UPI mandate" } },
-    );
+    fireEvent.change(screen.getByRole("textbox", { name: /payment method/i }), {
+      target: { value: "UPI mandate" },
+    });
     fireEvent.change(screen.getByLabelText(/free-trial end date/i), {
       target: { value: "2026-01-15" },
     });
@@ -113,7 +112,7 @@ describe("PaymentFormRoute", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Add payment" }));
 
-    await screen.findByText("Payment added to the local register.");
+    await screen.findByText("Payment added.");
     const [created] = await services.payments.list();
     expect(created).toMatchObject({
       amount: 9_950,
@@ -136,7 +135,7 @@ describe("PaymentFormRoute", () => {
     const services = createTestApplicationServices();
     const create = vi.spyOn(services.payments, "create");
     renderPaymentFeature(services, "/add");
-    await screen.findByRole("heading", { name: "Record a due." });
+    await screen.findByRole("heading", { name: "Add payment" });
 
     fireEvent.change(screen.getByRole("textbox", { name: /amount/i }), {
       target: { value: "-1.00" },
@@ -184,7 +183,7 @@ describe("PaymentFormRoute", () => {
     renderPaymentFeature(services, `/payments/${existing.id}/edit`);
 
     expect(
-      await screen.findByRole("heading", { name: "Revise the record." }),
+      await screen.findByRole("heading", { name: "Edit payment" }),
     ).toBeVisible();
     expect(screen.getByRole("textbox", { name: /amount/i })).toHaveValue(
       "12.99",
@@ -200,7 +199,7 @@ describe("PaymentFormRoute", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    await screen.findByText("Payment changes saved.");
+    await screen.findByText("Payment saved.");
     const updated = await services.payments.get(existing.id);
     expect(updated).toMatchObject({
       name: "Updated workspace",
@@ -268,7 +267,7 @@ describe("PaymentFormRoute", () => {
       payments: { ...basePayments, create },
     });
     const pendingView = renderPaymentFeature(services, "/add");
-    await screen.findByRole("heading", { name: "Record a due." });
+    await screen.findByRole("heading", { name: "Add payment" });
 
     fireEvent.change(screen.getByRole("textbox", { name: /name/i }), {
       target: { value: "Pending payment" },
@@ -288,17 +287,17 @@ describe("PaymentFormRoute", () => {
       );
     });
     expect(
-      await screen.findByRole("heading", { name: "Every recurring due." }),
+      await screen.findByRole("heading", { name: "Payments" }),
     ).toBeVisible();
     pendingView.unmount();
 
     const cancellationServices = createTestApplicationServices();
     const cancelledCreate = vi.spyOn(cancellationServices.payments, "create");
     renderPaymentFeature(cancellationServices, "/add");
-    await screen.findByRole("heading", { name: "Record a due." });
+    await screen.findByRole("heading", { name: "Add payment" });
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(
-      await screen.findByRole("heading", { name: "Every recurring due." }),
+      await screen.findByRole("heading", { name: "Payments" }),
     ).toBeVisible();
     expect(cancelledCreate).not.toHaveBeenCalled();
   });

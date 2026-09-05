@@ -68,7 +68,7 @@ describe("settings", () => {
     });
 
     expect(
-      await screen.findByRole("heading", { name: "Know what's due." }),
+      await screen.findByRole("heading", { name: "Upcoming" }),
     ).toBeInTheDocument();
     expect(document.documentElement).toHaveAttribute("data-theme", "light");
 
@@ -171,7 +171,7 @@ describe("settings", () => {
     ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(
-      await screen.findByRole("heading", { name: "Know what's due." }),
+      await screen.findByRole("heading", { name: "Upcoming" }),
     ).toBeInTheDocument();
   });
 });

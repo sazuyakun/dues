@@ -64,7 +64,6 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
       >
-        <p className="eyebrow">Confirmation required</p>
         <h2 id={titleId}>{title}</h2>
         <div id={descriptionId}>{children}</div>
         <div className="dialog-actions">

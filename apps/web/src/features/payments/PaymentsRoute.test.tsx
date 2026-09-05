@@ -43,7 +43,7 @@ describe("PaymentsRoute", () => {
       initialPayments: records,
     });
     renderPaymentFeature(services, "/payments");
-    await screen.findByRole("heading", { name: "Every recurring due." });
+    await screen.findByRole("heading", { name: "Payments" });
 
     fireEvent.change(screen.getByRole("searchbox", { name: /search/i }), {
       target: { value: "LEGACY" },
@@ -205,9 +205,7 @@ describe("PaymentsRoute", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Pause" }));
 
-    expect(
-      await screen.findByText(/payment list has been reloaded/i),
-    ).toBeVisible();
+    expect(await screen.findByText(/the list was reloaded/i)).toBeVisible();
     expect(screen.getByText("paused")).toBeVisible();
     expect(list).toHaveBeenCalledTimes(2);
     expect(pause).toHaveBeenCalledWith(active.id, {
@@ -220,7 +218,7 @@ describe("PaymentsRoute", () => {
     renderPaymentFeature(services, "/payments");
 
     expect(
-      await screen.findByRole("heading", { name: "No payments recorded" }),
+      await screen.findByRole("heading", { name: "No payments" }),
     ).toBeVisible();
     expect(screen.getByRole("link", { name: "Add a payment" })).toHaveAttribute(
       "href",
