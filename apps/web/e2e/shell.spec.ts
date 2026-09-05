@@ -82,6 +82,24 @@ test("keeps the field log usable at wide and narrow viewports", async ({
     }
   }
 
+  await page.goto("/add");
+  const dateFields = page.locator("#payment-next-due, #payment-trial-end");
+  await expect(dateFields).toHaveCount(2);
+  const dateFieldsAreContained = await dateFields.evaluateAll((inputs) =>
+    inputs.every((input) => {
+      const field = input.closest(".form-field");
+      const fieldset = input.closest("fieldset");
+      if (!field || !fieldset) return false;
+
+      return (
+        getComputedStyle(field).minWidth === "0px" &&
+        input.getBoundingClientRect().right <=
+          fieldset.getBoundingClientRect().right
+      );
+    }),
+  );
+  expect(dateFieldsAreContained).toBe(true);
+
   await page.goto("/upcoming");
   const navigationTargets = page.getByRole("navigation", {
     name: "Main navigation",
