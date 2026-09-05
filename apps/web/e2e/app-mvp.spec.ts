@@ -193,7 +193,7 @@ async function deleteAllPayments(page: Page) {
     await expect(page.locator(".payment-manifest-row")).toHaveCount(remaining);
   }
   await expect(
-    page.getByRole("heading", { name: "No payments recorded" }),
+    page.getByRole("heading", { name: "No payments" }),
   ).toBeVisible();
 }
 

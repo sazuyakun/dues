@@ -17,8 +17,6 @@ import {
   ConfirmDialog,
   EmptyState,
   LoadingState,
-  PageHeader,
-  SectionHeading,
   StatusMessage,
 } from "../../components";
 import { formatMinorUnitAmount } from "./amount";
@@ -183,10 +181,7 @@ export function PaymentsRoute({
   if (loadState.status === "loading") {
     return (
       <div className="page payments-feature">
-        <LoadingState
-          title="Opening the payment register"
-          message="Reading recurring payments stored on this device."
-        />
+        <LoadingState title="Loading payments" />
       </div>
     );
   }
@@ -209,20 +204,9 @@ export function PaymentsRoute({
 
   return (
     <div className="page payments-feature">
-      <PageHeader
-        index="02"
-        eyebrow="Payment register"
-        title="Payments"
-        copy="Search the local record, distinguish paused and archived entries, and make deliberate state changes."
-        metadata={[
-          { label: "Records", value: String(records.length).padStart(2, "0") },
-          {
-            label: "Visible",
-            value: String(visibleRecords.length).padStart(2, "0"),
-          },
-          { label: "Order", value: "Due date" },
-        ]}
-      />
+      <h1 id="payments-title" className="page-title">
+        Payments
+      </h1>
 
       {notice && (
         <section
@@ -237,9 +221,8 @@ export function PaymentsRoute({
 
       {records.length === 0 ? (
         <EmptyState
-          title="No payments recorded"
-          message="Add the first recurring due to begin your private register."
-          action={<Link to="/add">Add your first payment</Link>}
+          title="No payments"
+          action={<Link to="/add">Add a payment</Link>}
         />
       ) : (
         <>
@@ -300,15 +283,8 @@ export function PaymentsRoute({
 
           <section
             className="payment-register"
-            aria-labelledby="payment-register-title"
+            aria-labelledby="payments-title"
           >
-            <SectionHeading
-              id="payment-register-title"
-              eyebrow="Local entries"
-              title="Recurring payments"
-              count={visibleRecords.length}
-            />
-
             {visibleRecords.length === 0 ? (
               <div className="payment-no-results">
                 <p className="telemetry">No matches</p>

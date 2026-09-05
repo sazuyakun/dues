@@ -218,10 +218,11 @@ describe("PaymentsRoute", () => {
     renderPaymentFeature(services, "/payments");
 
     expect(
-      await screen.findByRole("heading", { name: "No payments recorded" }),
+      await screen.findByRole("heading", { name: "No payments" }),
     ).toBeVisible();
-    expect(
-      screen.getByRole("link", { name: "Add your first payment" }),
-    ).toHaveAttribute("href", "/add");
+    expect(screen.getByRole("link", { name: "Add a payment" })).toHaveAttribute(
+      "href",
+      "/add",
+    );
   });
 });
